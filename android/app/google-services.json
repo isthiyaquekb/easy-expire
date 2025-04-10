@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "633755264319",
+    "project_id": "easy-expire",
+    "storage_bucket": "easy-expire.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:633755264319:android:4c440ccfe88661c0c69f8a",
+        "android_client_info": {
+          "package_name": "com.kambatha.easyexpire"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoBSx6P8IeBORiFUEG49Lw6GdApEZAoh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
