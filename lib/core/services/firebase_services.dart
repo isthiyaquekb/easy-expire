@@ -12,17 +12,15 @@ import 'package:get_storage/get_storage.dart';
 class FirebaseServices {
   static final FirebaseServices _instance = FirebaseServices._internal();
   final storageBox = GetStorage();
-  factory FirebaseServices() {
-    return _instance;
-  }
+  factory FirebaseServices() => _instance;
 
   FirebaseServices._internal();
 
-  final FirebaseAuth auth = FirebaseAuth.instance;
-  final FirebaseFirestore fireStore = FirebaseFirestore.instance;
+  FirebaseAuth get auth => FirebaseAuth.instance;
+  FirebaseFirestore get fireStore => FirebaseFirestore.instance;
 
-  final String collectionName = 'products';
-  // final FirebaseMessaging messaging = FirebaseMessaging.instance;
+  final String userCollection = 'Users';
+  final String productCollection = 'products';
 
   Future<void> initializeFirebase() async {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -40,7 +38,7 @@ class FirebaseServices {
     if (user != null) {
       // Query Firestore for the document where id == user.uid
       QuerySnapshot querySnapshot = await fireStore
-          .collection('Users')
+          .collection(userCollection)
           .where('id', isEqualTo: user.uid) // Match Firestore document with Firebase Auth UID
           .limit(1)
           .get();

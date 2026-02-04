@@ -156,7 +156,7 @@ class InventoryViewModel extends ChangeNotifier {
       BuildContext context,
       ) async {
     try {
-      await _firebaseServices.fireStore.collection(_firebaseServices.collectionName).add(data.toMap()).then((value) {
+      await _firebaseServices.fireStore.collection(_firebaseServices.productCollection).add(data.toMap()).then((value) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Product added successfully')),
         );

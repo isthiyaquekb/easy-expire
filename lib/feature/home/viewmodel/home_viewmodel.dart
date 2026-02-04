@@ -132,7 +132,7 @@ class HomeViewModel extends ChangeNotifier {
 
   // Example of retrieving all products
   Stream<QuerySnapshot> getProductsStream() {
-    return _firebaseServices.fireStore.collection(_firebaseServices.collectionName).snapshots();
+    return _firebaseServices.fireStore.collection(_firebaseServices.productCollection).snapshots();
   }
 
   //GET ALL PRODUCT
@@ -153,7 +153,7 @@ class HomeViewModel extends ChangeNotifier {
       // Calculate days left and filter based on selected filter
       setSelectedFilter(null);
       _calculateDaysLeftAndFilter();
-      setupNotification();
+      // setupNotification();
       notifyListeners();
     } catch (e) {
       print('Error fetching products: $e');

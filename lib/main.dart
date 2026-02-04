@@ -1,4 +1,5 @@
 import 'package:easyexpire/core/constant/app_routes.dart';
+import 'package:easyexpire/core/services/firebase_services.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
 import 'package:easyexpire/feature/dashboard/viewmodel/dashboard_provider.dart';
 import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
@@ -16,8 +17,8 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
-  await LocalNotificationServices.init();
-  await Firebase.initializeApp();
+  await FirebaseServices().initializeFirebase();
+  // await LocalNotificationServices.init();
   runApp(MultiProvider(providers: [
   ChangeNotifierProvider(create: (_) => SplashProvider(),),
   ChangeNotifierProvider(create: (_) => AuthViewModel(),),

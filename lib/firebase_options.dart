@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -64,6 +61,15 @@ class DefaultFirebaseOptions {
     projectId: 'easy-expire',
     storageBucket: 'easy-expire.firebasestorage.app',
     iosBundleId: 'com.kambatha.easyexpire',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyA3YaAvM4t1Mtfow6s4-PMqikz06bylu5w',
+    appId: '1:633755264319:web:04e10a8afc251e53c69f8a',
+    messagingSenderId: '633755264319',
+    projectId: 'easy-expire',
+    authDomain: 'easy-expire.firebaseapp.com',
+    storageBucket: 'easy-expire.firebasestorage.app',
   );
 
 }
