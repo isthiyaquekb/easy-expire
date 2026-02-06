@@ -25,7 +25,9 @@ class InventoryViewModel extends ChangeNotifier {
   TextEditingController get quantityController => _quantityController;
   TextEditingController get batchNoController => _batchNoController;
 
-  final formKey = GlobalKey<FormState>();
+  // final formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> get formKey => GlobalKey<FormState>();
+
 
   var currentDate = DateTime.now();
   var currentDateTime = DateTime.now();
