@@ -11,7 +11,7 @@ class EditProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldColor,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: CommonAppBar(title: 'Edit Profile',isBack: true,),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

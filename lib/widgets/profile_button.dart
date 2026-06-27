@@ -29,7 +29,7 @@ class ProfileButton extends StatelessWidget {
                   Text(title,style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textColor),),
+                      color: AppColors.primary),),
                   Icon(Icons.arrow_forward_ios_rounded)
                 ],
               ),

@@ -91,8 +91,12 @@ class AuthViewModel extends ChangeNotifier {
       if (e.code == 'invalid-credential') {
         log("INVALID CREDENTIAL PLEASE CHECK");
         Toastification().show(
+          type: ToastificationType.error,
+          style: ToastificationStyle.flatColored,
           title:Text("Invalid Credentials"),
           description: Text("Please check your email and password"),
+          alignment: Alignment.topRight,
+          autoCloseDuration: const Duration(seconds: 4),
         );
       }
       return false;

@@ -14,7 +14,7 @@ class SettingsPage extends StatelessWidget {
       settingsProvider.initialize();
     });
     return Scaffold(
-      backgroundColor: AppColors.scaffoldColor,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: CommonAppBar(title: 'Settings', isBack: true),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,

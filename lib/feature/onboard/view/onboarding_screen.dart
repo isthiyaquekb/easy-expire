@@ -12,7 +12,7 @@ class OnboardingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final onboardingProvider = context.read<OnboardingViewModel>();
     return Scaffold(
-      backgroundColor: AppColors.primaryColor,
+      backgroundColor: AppColors.scaffoldBackground,
       body: Stack(
         children: [
           Consumer<OnboardingViewModel>(
@@ -51,7 +51,7 @@ class OnboardingScreen extends StatelessWidget {
                           Text(
                             value.onBoardingPageList[index].title,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: AppColors.whiteColor,fontSize: 24,fontWeight: FontWeight.w700)
+                            style: const TextStyle(color: AppColors.white,fontSize: 24,fontWeight: FontWeight.w700)
                           ),
                           const SizedBox(
                             height: 10,
@@ -59,7 +59,7 @@ class OnboardingScreen extends StatelessWidget {
                           Text(
                             value.onBoardingPageList[index].description,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: AppColors.whiteColor,fontSize: 18,fontWeight: FontWeight.w500),
+                            style: const TextStyle(color: AppColors.white,fontSize: 18,fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
@@ -78,8 +78,8 @@ class OnboardingScreen extends StatelessWidget {
               effect: const ExpandingDotsEffect(
                 dotHeight: 8,
                 dotWidth: 12,
-                dotColor:  AppColors.whiteColor,
-                activeDotColor: AppColors.textColor,
+                dotColor:  AppColors.white,
+                activeDotColor: AppColors.primary,
                 expansionFactor: 3,
                 // strokeWidth: 5,
               ),
@@ -102,7 +102,7 @@ class OnboardingScreen extends StatelessWidget {
                               child: Text(
                                 "Next",
                                 style: TextStyle(
-                                  color: AppColors.textColor,
+                                  color: AppColors.primary,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -122,7 +122,7 @@ class OnboardingScreen extends StatelessWidget {
                               child: Text(
                                 "Get Started",
                                 style: TextStyle(
-                                  color: AppColors.textColor,
+                                  color: AppColors.primary,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -150,7 +150,7 @@ class OnboardingScreen extends StatelessWidget {
                     child: Text(
                       "Skip",
                       style: TextStyle(
-                        color: AppColors.textColor,
+                        color: AppColors.primary,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),

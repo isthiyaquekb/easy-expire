@@ -1,10 +1,13 @@
 import 'package:easyexpire/feature/dashboard/view/dashboard.dart';
 import 'package:easyexpire/feature/home/view/home_page.dart';
+import 'package:easyexpire/feature/inventory/view/add_new_product_screen.dart';
 import 'package:easyexpire/feature/inventory/view/inventory_page.dart';
 import 'package:easyexpire/feature/login/view/login_page.dart';
 import 'package:easyexpire/feature/login/view/signup_page.dart';
+import 'package:easyexpire/feature/notification/view/notification_page.dart';
 import 'package:easyexpire/feature/onboard/view/onboarding_screen.dart';
 import 'package:easyexpire/feature/profile/view/edit_profile_page.dart';
+import 'package:easyexpire/feature/profile/view/profile_page.dart';
 import 'package:easyexpire/feature/settings/view/ringtone_selection_page.dart';
 import 'package:easyexpire/feature/settings/view/settings_page.dart';
 import 'package:easyexpire/feature/splash/view/splash_screen.dart';
@@ -24,7 +27,9 @@ abstract class AppRoutes {
   static const permission = '/permission';
   static const inventory = '/inventory';
   static const editProfile = '/edit-profile';
+  static const profile = '/profile';
   static const settings = '/settings';
+  static const notification = '/notification';
   static const ringtoneSelection = '/ringtone-selection';
 
 
@@ -43,8 +48,12 @@ abstract class AppRoutes {
         return MaterialPageRoute(builder: (context) => const Dashboard());
       case home:
         return MaterialPageRoute(builder: (context) => const HomePage());
+      case notification:
+        return MaterialPageRoute(builder: (context) => const NotificationPage());
+      case profile:
+        return MaterialPageRoute(builder: (context) => const ProfilePage());
 
-      case inventory:return MaterialPageRoute(builder: (context) => const InventoryPage());
+      case inventory:return MaterialPageRoute(builder: (context) => AddNewProductScreen());
       case editProfile:return MaterialPageRoute(builder: (context) => const EditProfilePage());
       case settings:return MaterialPageRoute(builder: (context) => const SettingsPage());
       case ringtoneSelection:return MaterialPageRoute(builder: (context) => const RingtoneSelectionPage());

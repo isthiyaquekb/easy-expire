@@ -1,27 +1,41 @@
-
 import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:flutter/material.dart';
 
-class CommonAppBar extends StatelessWidget implements PreferredSizeWidget{
+class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final bool isBack;
+  final Widget? leading; // Allows custom leading widget (e.g., menu icon, back button, logo)
+  final List<Widget>? actions; // Allows custom action widgets (e.g., search icon, notifications)
+  final bool isBack; // If true, automatically adds a BackButton if 'leading' is null
+
   const CommonAppBar({
-    required this.title,
-    required this.isBack,
     super.key,
+    required this.title,
+    this.leading,
+    this.actions,
+    this.isBack = false, // Default to false, allowing specific app bars like FreshManager
   });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.scaffoldColor,
-      automaticallyImplyLeading: isBack,
+      backgroundColor: AppColors.cardBackground, // White background from new palette
+      elevation: 0.5, // Subtle shadow for distinction, as often seen in material design
+      // Decide leading widget: custom one, a back arrow, or null
+      leading: leading ?? (isBack ? const BackButton(color: AppColors.primary) : null),
+      automaticallyImplyLeading: false, // Explicitly control leading to avoid conflicts
       title: Text(
         title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.textColor),
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: AppColors.primary, // Dark text from new palette
+          fontWeight: FontWeight.bold, // Bold title as per FreshManager design
+          fontSize: 20, // Appropriate size for app bar title
+        ),
       ),
+      centerTitle: true, // Center the title as seen in the FreshManager app bar
+      actions: actions,
     );
   }
+
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

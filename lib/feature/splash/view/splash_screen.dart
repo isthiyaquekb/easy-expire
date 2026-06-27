@@ -42,7 +42,7 @@ class SplashScreen extends StatelessWidget {
           const Text(AppString.appName,style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: AppColors.textColor
+            color: AppColors.primary
           ),)
         ],
       ),

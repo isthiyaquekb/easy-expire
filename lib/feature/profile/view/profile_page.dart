@@ -23,7 +23,7 @@ class ProfilePage extends StatelessWidget {
     });
 
     return  Scaffold(
-      backgroundColor: AppColors.scaffoldColor,
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: CommonAppBar(title: "Profile",isBack: false,),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -32,8 +32,8 @@ class ProfilePage extends StatelessWidget {
           Consumer<ProfileViewmodel>(builder: (context, profileViewmodel, child) =>  Container(height: MediaQuery.sizeOf(context).height*0.3,width: MediaQuery.sizeOf(context).width,
             decoration: BoxDecoration(
                 gradient: LinearGradient(colors: [
-                  AppColors.scaffoldColor,
-                  AppColors.primaryColor,
+                  AppColors.scaffoldBackground,
+                  AppColors.primary,
                 ],begin: Alignment.topCenter,end: Alignment.bottomCenter),
                 boxShadow: [
                   BoxShadow(color: Colors.black26,blurRadius: 4.0,spreadRadius: 6.0,offset: Offset(0.4, 0.4))
@@ -115,7 +115,7 @@ class ProfileTextWidget extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: SvgPicture.asset(icons,height: 24,width: 24,colorFilter: ColorFilter.mode(AppColors.textColor, BlendMode.srcIn),),
+            child: SvgPicture.asset(icons,height: 24,width: 24,colorFilter: ColorFilter.mode(AppColors.primary, BlendMode.srcIn),),
           ),
           Expanded(
             child: Column(
@@ -131,7 +131,7 @@ class ProfileTextWidget extends StatelessWidget {
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textColor),)
+                      color: AppColors.primary),)
               ],
             ),
           )

@@ -8,12 +8,14 @@ class NotificationModel {
   final String title;
   final String body;
   final DateTime timestamp;
+  bool isRead;
 
   NotificationModel({
     required this.id,
     required this.title,
     required this.body,
     required this.timestamp,
+    this.isRead = false,
   });
 
   factory NotificationModel.fromFirestore(DocumentSnapshot doc) {
