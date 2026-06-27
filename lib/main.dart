@@ -9,26 +9,36 @@ import 'package:easyexpire/feature/onboard/view_model/onboarding_view_model.dart
 import 'package:easyexpire/feature/profile/viewmodel/profile_viewmodel.dart';
 import 'package:easyexpire/feature/settings/viewmodel/settings_viewmodel.dart';
 import 'package:easyexpire/feature/splash/view_model/splash_provider.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:easyexpire/feature/notification/viewmodel/notification_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+
+import 'package:easyexpire/core/services/background_service.dart';
+import 'package:toastification/toastification.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
   await FirebaseServices().initializeFirebase();
-  // await LocalNotificationServices.init();
-  runApp(MultiProvider(providers: [
-  ChangeNotifierProvider(create: (_) => SplashProvider(),),
-  ChangeNotifierProvider(create: (_) => AuthViewModel(),),
-  ChangeNotifierProvider(create: (_) => OnboardingViewModel()),
-  ChangeNotifierProvider(create: (_) => DashboardProvider()),
-  ChangeNotifierProvider(create: (_) => HomeViewModel()),
-  ChangeNotifierProvider(create: (_) => InventoryViewModel()),
-  ChangeNotifierProvider(create: (_) => ProfileViewmodel()),
-  ChangeNotifierProvider(create: (_) => SettingsViewmodel()),
-  ],child: const MyApp()));
+  await LocalNotificationServices.init();
+  await BackgroundService.initialize();
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SplashProvider()),
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => OnboardingViewModel()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => HomeViewModel()),
+        ChangeNotifierProvider(create: (_) => InventoryViewModel()),
+        ChangeNotifierProvider(create: (_) => ProfileViewmodel()),
+        ChangeNotifierProvider(create: (_) => SettingsViewmodel()),
+        ChangeNotifierProvider(create: (_) => NotificationViewModel()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -37,16 +47,18 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Easy Expire',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff7FC7D9)),
-        useMaterial3: true,
-        fontFamily: 'Poppins'
+    return ToastificationWrapper(
+      child: MaterialApp(
+        title: 'Easy Expire',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff7FC7D9)),
+          useMaterial3: true,
+          fontFamily: 'Poppins',
+        ),
+        debugShowCheckedModeBanner: false,
+        initialRoute: AppRoutes.splash,
+        onGenerateRoute: AppRoutes.generatedRoutes,
       ),
-      debugShowCheckedModeBanner: false,
-      initialRoute: AppRoutes.splash,
-      onGenerateRoute:AppRoutes.generatedRoutes,
     );
   }
 }

@@ -6,5 +6,6 @@ class AppKeys {
   static const keyIsLoggedIn = 'isLoggedIn';
   static const keyIsOnboardingStarted = 'isStarted';
   static const keyUserId = 'user-id';
+  static const keyIsPermissionEnabled = 'isPermissionEnabled';
 
 }

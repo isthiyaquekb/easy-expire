@@ -78,6 +78,7 @@ class SettingsPage extends StatelessWidget {
             title: const Text('Delete My Account'),
             onTap: () {
               // Show confirmation dialog
+              context.read<SettingsViewmodel>().deleteAccount(context);
             },
           ),
         ],

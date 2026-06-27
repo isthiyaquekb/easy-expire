@@ -5,6 +5,7 @@ import 'package:easyexpire/core/services/firebase_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:toastification/toastification.dart';
 
 import '../model/user_model.dart';
 
@@ -89,6 +90,10 @@ class AuthViewModel extends ChangeNotifier {
       log("LOGIN EXCEPTION:$e");
       if (e.code == 'invalid-credential') {
         log("INVALID CREDENTIAL PLEASE CHECK");
+        Toastification().show(
+          title:Text("Invalid Credentials"),
+          description: Text("Please check your email and password"),
+        );
       }
       return false;
     } catch (e) {

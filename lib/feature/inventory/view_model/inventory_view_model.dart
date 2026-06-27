@@ -135,22 +135,19 @@ class InventoryViewModel extends ChangeNotifier {
   }
 
   Future<void> submit(BuildContext context) async {
-    if (formKey.currentState!.validate()) {
-      // print("BARCODE NUMBER:${barcodeController.text}");
-      print("PRODUCT NAME:${nameController.text}");
-      print("QUANTITY NAME:${quantityController.text}");
-      print("DATE EXPIRY:$currentDate");
-      print("DAY LEFT:$dayLeft");
-      print("BATCH EXPIRY:${batchNoController.text}");
-      var data = InventoryModel(
-          userId: userId,
-          productName: nameController.text,
-          expiryDate: AppDateFormatter.firebaseTimestampFormatter(currentDate.toString()),
-          batchNo: batchNoController.text,
-          quantity: int.parse(quantityController.text),daysLeft: dayLeft);
-      await addProduct(data, context);
-      print("JSON TO DB:${data.toMap()}");
-    }
+    print("PRODUCT NAME:${nameController.text}");
+    print("QUANTITY NAME:${quantityController.text}");
+    print("DATE EXPIRY:$currentDate");
+    print("DAY LEFT:$dayLeft");
+    print("BATCH EXPIRY:${batchNoController.text}");
+    var data = InventoryModel(
+        userId: userId,
+        productName: nameController.text,
+        expiryDate: AppDateFormatter.firebaseTimestampFormatter(currentDate.toString()),
+        batchNo: batchNoController.text,
+        quantity: int.parse(quantityController.text),daysLeft: dayLeft);
+    await addProduct(data, context);
+    print("JSON TO DB:${data.toMap()}");
   }
 
   Future<void> addProduct(

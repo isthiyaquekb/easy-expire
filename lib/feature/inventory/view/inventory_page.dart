@@ -10,6 +10,8 @@ class InventoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<FormState> localFormKey = GlobalKey<FormState>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final inventoryProvider = Provider.of<InventoryViewModel>(context, listen: false);
       inventoryProvider.initialize();
@@ -24,7 +26,7 @@ class InventoryPage extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Consumer<InventoryViewModel>(
             builder: (context, provider, child) => Form(
-              key: provider.formKey,
+              key: localFormKey,
               child: ListView(
                 children: [
                   const SizedBox(
@@ -199,7 +201,9 @@ class InventoryPage extends StatelessWidget {
                   Align(
                     alignment: Alignment.center,
                     child: CommonButton(title: "Submit", tap: () {
+                      if(localFormKey.currentState!.validate()){
                         provider.submit(context);
+                      }
                       },),
                   ),
                 ],
