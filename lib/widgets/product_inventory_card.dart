@@ -66,7 +66,7 @@ class ProductInventoryCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12), // Space between cards
       padding: const EdgeInsets.all(20.0), // Matches 'p-5'
       decoration: BoxDecoration(
-        color: AppColors.cardBackground, // bg-surface-container-lowest
+        color:  Theme.of(context).colorScheme.surface, // bg-surface-container-lowest
         border: Border.all(color: AppColors.borderColor), // border-outline-variant
         borderRadius: BorderRadius.circular(12.0), // rounded-xl (adjust for desired roundness)
       ),

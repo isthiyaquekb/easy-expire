@@ -18,15 +18,15 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.cardBackground, // White background from new palette
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // White background from new palette
       elevation: 0.5, // Subtle shadow for distinction, as often seen in material design
       // Decide leading widget: custom one, a back arrow, or null
-      leading: leading ?? (isBack ? const BackButton(color: AppColors.primary) : null),
+      leading: leading ?? (isBack ? BackButton(color: Theme.of(context).colorScheme.onSurface) : null),
       automaticallyImplyLeading: false, // Explicitly control leading to avoid conflicts
       title: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: AppColors.primary, // Dark text from new palette
+          color: Theme.of(context).colorScheme.onSurface, // Dark text from new palette
           fontWeight: FontWeight.bold, // Bold title as per FreshManager design
           fontSize: 20, // Appropriate size for app bar title
         ),

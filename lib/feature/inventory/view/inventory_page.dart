@@ -31,15 +31,15 @@ class InventoryPage extends StatelessWidget {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
       // appBar: CommonAppBar(title: "Products",isBack: false,),
       appBar: CommonAppBar(
         title: "Products",
         isBack: false, // Default false, but can be true if navigated to
-        leading: IconButton(
-          icon: const Icon(Icons.inventory_2_outlined, color: Colors.black87),
-          onPressed: () {},
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image(image: AssetImage(AppAssets.appLogo),),
         ),
         actions: [
           IconButton(
@@ -253,10 +253,10 @@ class InventoryPage extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: const Text(
+              child: Text(
                 "Keep an eye on these products, \nit's days are coming to an end",
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: 18,
                 ),

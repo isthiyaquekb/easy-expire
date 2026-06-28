@@ -5,6 +5,8 @@ class UrgentAttentionTile extends StatelessWidget {
   final String subtitle; // batch no or location
   final int daysLeft;
   final int quantity;
+  final int itemLength;
+  final int index;
 
   const UrgentAttentionTile({
     super.key,
@@ -12,6 +14,8 @@ class UrgentAttentionTile extends StatelessWidget {
     required this.subtitle,
     required this.daysLeft,
     required this.quantity,
+    required this.itemLength,
+    required this.index,
   });
 
   @override
@@ -21,11 +25,13 @@ class UrgentAttentionTile extends StatelessWidget {
     final statusText = isExpired ? "Expired" : (isExpiringToday ? "Exp. Today" : "Urgent"); // 'Urgent' for positive days but near
     final statusColor = isExpired ? const Color(0xFFD32F2F) : (isExpiringToday ? const Color(0xFFE65100) : Colors.amber.shade700);
 
-
+    final dividerColor = Theme.of(context).brightness == Brightness.dark ? Colors.white12 : const Color(0xFFEEEEEE);
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFEEEEEE)),
+      decoration:  BoxDecoration(
+        border:(itemLength - 1) == index
+            ? null
+            : Border(
+          bottom: BorderSide(color: dividerColor, width: 1),
         ),
       ),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),

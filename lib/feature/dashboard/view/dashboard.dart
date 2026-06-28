@@ -21,6 +21,7 @@ class Dashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<DashboardProvider>(builder: (context, provider, child) => IndexedStack(
         index: provider.currentIndex,
         children: [
@@ -33,9 +34,13 @@ class Dashboard extends StatelessWidget {
       ),),
       bottomNavigationBar: Consumer<DashboardProvider>(builder: (context, dashboardViewModel, child) {
         return BottomNavigationBar(
-          selectedItemColor: AppColors.primary,
+          selectedItemColor: Theme.of(context).colorScheme.primary,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          unselectedItemColor: AppColors.bottomNavInactiveIcon,
+          unselectedItemColor: Theme.of(context).brightness == Brightness.light
+        ? Colors.grey.shade600
+          : Colors.grey.shade400,
+
+          backgroundColor: Theme.of(context).colorScheme.surface,
           items:
           [
             BottomNavigationBarItem(icon: Icon(Icons.home),label: 'Home'),

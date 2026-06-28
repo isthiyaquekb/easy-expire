@@ -1,3 +1,4 @@
+import 'package:easyexpire/core/constant/app_assets.dart';
 import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:easyexpire/widgets/common_app_bar.dart';
 import 'package:easyexpire/widgets/notification_item_card.dart';
@@ -198,12 +199,9 @@ class _NotificationPageState extends State<NotificationPage> {
       appBar: CommonAppBar(
         title: "Notifications",
         isBack: false, // Default false, but can be true if navigated to
-        leading: IconButton(
-          icon: const Icon(Icons.delete_outline, color: AppColors.primary),
-          onPressed: () {
-            // TODO: Implement "Clear All Notifications" logic
-            // Provider.of<NotificationViewModel>(context, listen: false).clearAllNotifications();
-          },
+        leading:Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image(image: AssetImage(AppAssets.appLogo),),
         ),
         actions: [
           IconButton(

@@ -2,6 +2,7 @@ import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/core/constant/app_theme.dart';
 import 'package:easyexpire/core/services/firebase_services.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
+import 'package:easyexpire/core/theme/theme_view_model.dart';
 import 'package:easyexpire/feature/dashboard/viewmodel/dashboard_provider.dart';
 import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
 import 'package:easyexpire/feature/inventory/view_model/inventory_view_model.dart';
@@ -36,6 +37,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProfileViewmodel()),
         ChangeNotifierProvider(create: (_) => SettingsViewmodel()),
         ChangeNotifierProvider(create: (_) => NotificationViewModel()),
+        ChangeNotifierProvider(create: (_) => ThemeViewModel(),),
       ],
       child: const MyApp(),
     ),
@@ -48,16 +50,17 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ToastificationWrapper(
+    return Consumer<ThemeViewModel>(builder: (context, themeVm, child) => ToastificationWrapper(
       child: MaterialApp(
         title: 'Easy Expire',
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
+        themeMode: themeVm.themeMode,
         debugShowCheckedModeBanner: false,
         initialRoute: AppRoutes.splash,
         onGenerateRoute: AppRoutes.generatedRoutes,
       ),
+    ),
     );
   }
 }
