@@ -28,9 +28,15 @@ class AppAssets {
   static const String searchIcon = "assets/svg/search_icons.svg";
   static const String storeIcon = "assets/svg/store.svg";
   static const String addressIcon = "assets/svg/address_pin.svg";
-  static const String emailIcon = "assets/svg/email_icon.svg";
+  static const String emailIcon = "assets/svg/email-Icon.svg";
   static const String phoneIcon = "assets/svg/phone_icon.svg";
   static const String editIcon = "assets/svg/edit_icon.svg";
+  static const String lockIcon = "assets/svg/lock_icon.svg";
+  static const String eyeOpenIcon = "assets/svg/eye-open.svg";
+  static const String eyeClosedIcon = "assets/svg/eye-closed.svg";
+  static const String locationIcon = "assets/svg/location-pin.svg";
+  static const String locationFilledIcon = "assets/svg/location-filled.svg";
+  // static const String storeIcon = "assets/svg/store-outline.svg";
 
 
 

@@ -47,6 +47,9 @@ class AuthViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  bool _isPasswordVisible = false;
+  bool get isPasswordVisible => _isPasswordVisible;
+
   String? storeNameValidator(String value) {
     if (value.isEmpty) {
       return 'Please enter a store name.';
@@ -215,5 +218,16 @@ class AuthViewModel extends ChangeNotifier {
     passwordController.dispose();
     super.dispose();
     print("AuthViewModel disposed"); // Add for debugging
+  }
+
+  void togglePasswordVisibility() {
+    _isPasswordVisible = !_isPasswordVisible;
+    print("AuthViewModel togglePasswordVisibility called ${_isPasswordVisible}");
+    notifyListeners();
+  }
+
+  void setIsLoading(bool isLoading) {
+    _isLoading = isLoading;
+    notifyListeners();
   }
 }

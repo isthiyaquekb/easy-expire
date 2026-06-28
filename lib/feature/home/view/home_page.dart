@@ -31,10 +31,7 @@ class HomePage extends StatelessWidget {
         appBar: CommonAppBar(
           title: "Home",
           isBack: false, // Default false, but can be true if navigated to
-          leading: IconButton(
-            icon: const Icon(Icons.inventory_2_outlined, color: Colors.black87),
-            onPressed: () {},
-          ),
+          leading: Image(image: AssetImage(AppAssets.appLogo)),
           actions: [
             IconButton(
               icon: const Icon(Icons.search, color: AppColors.primary),

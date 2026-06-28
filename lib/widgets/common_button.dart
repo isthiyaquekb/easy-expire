@@ -26,7 +26,7 @@ class CommonButton extends StatelessWidget {
           child: Text(title,style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.primary),),
+              color: Theme.of(context).colorScheme.onPrimaryContainer),),
         ),
       ),),
       )),
