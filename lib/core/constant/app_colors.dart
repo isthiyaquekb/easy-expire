@@ -88,6 +88,19 @@ abstract class AppColors {
   static const Color notificationActionSecondaryBorder = borderColor;
   static const Color notificationActionSecondaryText = bodyTextColor;
 
+
+  // Light Mode Palette (Lumina Inventory)
+  static const Color lightPrimary = Color(0xff1A1C1E);
+  static const Color lightSecondary = Color(0xffF0FDF4);
+  static const Color lightTertiary = Color(0xff201B17);
+  static const Color lightNeutral = Color(0xffF9FAFB);
+
+  // Dark Mode Palette (Lumina Dark)
+  static const Color darkPrimary = Color(0xff7DD3FC);
+  static const Color darkSecondary = Color(0xff94A3B8);
+  static const Color darkTertiary = Color(0xffFEBC60);
+  static const Color darkNeutral = Color(0xff121212);
+
 // --- Old Colors from previous design (commented out for reference/removal) ---
 // static const primaryColor= Color(0xff1A1C1E); // Replaced by 'primary'
 // static const typeColor= Color(0xffFEFDED); // This was a light yellowish, removed as it doesn't fit the new palette. 'secondary' is a light greenish.

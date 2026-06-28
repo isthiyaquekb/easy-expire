@@ -1,6 +1,7 @@
 import 'package:easyexpire/core/constant/app_assets.dart';
 import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
+import 'package:easyexpire/feature/notification/viewmodel/notification_viewmodel.dart';
 import 'package:easyexpire/utils/Formatter/app_date_formatter.dart';
 import 'package:easyexpire/widgets/common_app_bar.dart';
 import 'package:easyexpire/widgets/overview_card.dart';
@@ -18,6 +19,10 @@ class HomePage extends StatelessWidget {
       final homeProvider = Provider.of<HomeViewModel>(context, listen: false);
       homeProvider.checkForUpdate(context);
       homeProvider.initialize();
+      final effectiveUserId = homeProvider.userId.isEmpty ? null : homeProvider.userId;
+      if(effectiveUserId!=null){
+        Provider.of<NotificationViewModel>(context, listen: false).fetchNotifications(effectiveUserId);
+      }
     });
 
     return Scaffold(

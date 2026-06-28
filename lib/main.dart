@@ -1,4 +1,5 @@
 import 'package:easyexpire/core/constant/app_routes.dart';
+import 'package:easyexpire/core/constant/app_theme.dart';
 import 'package:easyexpire/core/services/firebase_services.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
 import 'package:easyexpire/feature/dashboard/viewmodel/dashboard_provider.dart';
@@ -50,11 +51,9 @@ class MyApp extends StatelessWidget {
     return ToastificationWrapper(
       child: MaterialApp(
         title: 'Easy Expire',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff7FC7D9)),
-          useMaterial3: true,
-          fontFamily: 'Poppins',
-        ),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
         debugShowCheckedModeBanner: false,
         initialRoute: AppRoutes.splash,
         onGenerateRoute: AppRoutes.generatedRoutes,

@@ -25,73 +25,67 @@ class ProfilePage extends StatelessWidget {
     return  Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: CommonAppBar(title: "Profile",isBack: false,),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Consumer<ProfileViewmodel>(builder: (context, profileViewmodel, child) =>  Container(height: MediaQuery.sizeOf(context).height*0.3,width: MediaQuery.sizeOf(context).width,
-            decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [
-                  AppColors.scaffoldBackground,
-                  AppColors.primary,
-                ],begin: Alignment.topCenter,end: Alignment.bottomCenter),
-                boxShadow: [
-                  BoxShadow(color: Colors.black26,blurRadius: 4.0,spreadRadius: 6.0,offset: Offset(0.4, 0.4))
-                ],
-                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20),bottomRight: Radius.circular(12))
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Align(
-                  //   alignment: Alignment.topRight,
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  //     child: SvgPicture.asset(AppAssets.editIcon,height: 24,width: 24,),
-                  //   ),
-                  // ),
-                  ProfileTextWidget(icons:AppAssets.storeIcon,title: 'Store name',value: profileViewmodel.userModel.storeName,),
-                  ProfileTextWidget(icons:AppAssets.addressIcon,title: 'Store address',value: profileViewmodel.userModel.storeAddress,),
-                  ProfileTextWidget(icons:AppAssets.emailIcon,title: 'Email',value: profileViewmodel.userModel.email,),
-                  ProfileTextWidget(icons:AppAssets.phoneIcon,title: 'Phone',value: profileViewmodel.userModel.phone,),
-                ],
-              ),
-            ),),),
-          Spacer(),
-          ProfileButton(
-            title: 'Edit Profile',
-            tap: () {
-              Navigator.pushNamed(context, AppRoutes.editProfile);
-            },
-          ),
-          ProfileButton(
-            title: 'Privacy',
-            tap: () {
+      body: Consumer<ProfileViewmodel>(
+        builder: (context, profileVm, child) {
+          final user = profileVm.userModel;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Profile Header
+                Stack(
+                  children: [
+                    CircleAvatar(radius: 50, backgroundImage: NetworkImage(user.phone ?? '')),
+                    Positioned(bottom: 0, right: 0, child: CircleAvatar(radius: 15, backgroundColor: Colors.black, child: Icon(Icons.edit, size: 15, color: Colors.white))),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(user.storeName ?? "User", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text(user.storeName ?? "Store Manager", style: TextStyle(color: Colors.grey[600])),
 
-            },
-          ),
-          ProfileButton(
-            title: 'Settings',
-            tap: () {
-              Navigator.pushNamed(context, AppRoutes.settings);
-            },
-          ),
-    Consumer<HomeViewModel>(builder: (context, provider, child) =>ProfileButton(
-            title: 'Logout',
-            tap: () async{
-              await provider.signOut();
-              log("LOGOUT OUT HOME SCREEN");
-              Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => route.isFirst,);
-            },
-          ),),
-          Spacer(),
-        ],
+                const SizedBox(height: 24),
+
+                // Store Details Container
+                _buildSection("STORE DETAILS", [
+                  ListTile(leading: const Icon(Icons.store), title: const Text("Store Name"), subtitle: Text(user.storeName ?? "")),
+                  ListTile(leading: const Icon(Icons.location_on), title: const Text("Location"), subtitle: Text(user.storeAddress ?? "")),
+                  ListTile(leading: const Icon(Icons.email), title: const Text("Contact Email"), subtitle: Text(user.email ?? "")),
+                ]),
+
+                // Preferences Container
+                _buildSection("PREFERENCES & SETTINGS", [
+                  ProfileButton(icon: Icons.person_outline, title: "Edit Profile", onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile)),
+                  ProfileButton(icon: Icons.notifications_none, title: "Notification Preferences", onTap: () {}),
+                  ProfileButton(icon: Icons.wb_sunny_outlined, title: "App Theme", trailing: "Light", onTap: () {}),
+                  ProfileButton(icon: Icons.lock_outline, title: "Security", onTap: () {}),
+                  Consumer<HomeViewModel>(builder: (context, homeVm, _) => ProfileButton(
+                    icon: Icons.logout, title: "Logout", isLogout: true, onTap: () async {
+                    await homeVm.signOut();
+                    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (route) => false);
+                  },
+                  )),
+                ]),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
+}
+
+Widget _buildSection(String title, List<Widget> children) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 20),
+    decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(12)),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(padding: const EdgeInsets.all(16), child: Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]))),
+        ...children
+      ],
+    ),
+  );
 }
 
 class ProfileTextWidget extends StatelessWidget {

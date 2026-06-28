@@ -168,8 +168,10 @@ class _NotificationPageState extends State<NotificationPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final homeVm = Provider.of<HomeViewModel>(context, listen: false);
-      final effectiveUserId = homeVm.userId.isEmpty ? 'test_user_id' : homeVm.userId;
-      Provider.of<NotificationViewModel>(context, listen: false).fetchNotifications(effectiveUserId);
+      final effectiveUserId = homeVm.userId.isEmpty ? null : homeVm.userId;
+      if(effectiveUserId!=null){
+        Provider.of<NotificationViewModel>(context, listen: false).fetchNotifications(effectiveUserId);
+      }
     });
   }
 
