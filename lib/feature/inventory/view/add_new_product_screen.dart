@@ -1,5 +1,10 @@
+import 'dart:developer';
+
+import 'package:easyexpire/core/constant/app_assets.dart';
+import 'package:easyexpire/feature/inventory/view/barcode_scanner_screen.dart';
 import 'package:easyexpire/feature/inventory/view_model/inventory_view_model.dart';
 import 'package:easyexpire/widgets/app_primary_button.dart';
+import 'package:easyexpire/widgets/common_app_text.dart';
 import 'package:easyexpire/widgets/common_button.dart';
 import 'package:easyexpire/widgets/custom_text_field.dart';
 import 'package:easyexpire/widgets/labeled_divider.dart';
@@ -23,18 +28,19 @@ class AddNewProductScreen  extends StatelessWidget {
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      // backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0.5,
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.inventory_2_outlined, color: Colors.black87),
-          onPressed: () {},
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image(image: AssetImage(AppAssets.appLogo),),
         ),
-        title: const Text(
+        title: Text(
           "New Inventory",
           style: TextStyle(
-            color: Colors.black87,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -42,7 +48,7 @@ class AddNewProductScreen  extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black87),
+            icon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurface,),
             onPressed: () {},
           ),
         ],
@@ -60,30 +66,42 @@ class AddNewProductScreen  extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header Section
-                      const Text(
-                        "Add New Product",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
+                      CommonAppText("Add New Product", variant: AppTextVariant.headlineLg,color: Theme.of(context).colorScheme.primary,),
+                      // Text(
+                      //   "Add New Product",
+                      //   style: TextStyle(
+                      //     fontSize: 24,
+                      //     fontWeight: FontWeight.bold,
+                      //     color: Colors.black,
+                      //   ),
+                      // ),
                       const SizedBox(height: 4),
-                      Text(
-                        "Log inventory items quickly.",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
+                      CommonAppText("Log inventory items quickly.", variant: AppTextVariant.bodySm,color: Theme.of(context).colorScheme.secondary,),
+                      // Text(
+                      //   "Log inventory items quickly.",
+                      //   style: TextStyle(
+                      //     fontSize: 14,
+                      //     color: Colors.grey[600],
+                      //   ),
+                      // ),
                       const SizedBox(height: 24),
 
                       // Scan Barcode Button
                       CustomOutlinedIconButton(
                         text: "Scan Barcode / QR",
                         icon: Icons.qr_code_scanner_rounded,
-                        onTap: () {
+                        onTap: () async {
                           // TODO: Trigger QR / Barcode Scanner
+                          final scannedBarcode = await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const BarcodeScannerScreen(),
+                            ),
+                          );
+
+                          if (scannedBarcode != null && scannedBarcode is String) {
+                            log("BARCODE FOUND======>:${scannedBarcode}");
+                            provider.setBarCode(scannedBarcode);
+                          }
                         },
                       ),
                       const SizedBox(height: 24),
@@ -96,7 +114,7 @@ class AddNewProductScreen  extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: const Color(0xFFE0E0E0)),
                         ),
@@ -127,6 +145,7 @@ class AddNewProductScreen  extends StatelessWidget {
                                     label: "Batch Number",
                                     hintText: "B-12345",
                                     controller: provider.batchNoController,
+
                                   ),
                                 ),
                               ],

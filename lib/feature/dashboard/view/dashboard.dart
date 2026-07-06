@@ -49,7 +49,6 @@ class Dashboard extends StatelessWidget {
             BottomNavigationBarItem(icon: Icon(Icons.notifications),label: 'Notification'),
             BottomNavigationBarItem(icon: Icon(Icons.person),label: 'Profile'),
           ],onTap: (value) {
-          log("XXXXX:$value");
           dashboardViewModel.changeBottomNavIndex(value);
         },
           currentIndex: dashboardViewModel.currentIndex,);

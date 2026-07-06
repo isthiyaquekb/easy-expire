@@ -147,13 +147,6 @@ import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
 
 // file: easy-expire/lib/feature/notification/view/notification_page.dart
 
-import 'package:easyexpire/core/constant/app_colors.dart';
-import 'package:easyexpire/widgets/common_app_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import 'package:easyexpire/feature/notification/viewmodel/notification_viewmodel.dart';
-import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart'; // For userId
 
 
 class NotificationPage extends StatefulWidget {
@@ -195,7 +188,7 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CommonAppBar(
         title: "Notifications",
         isBack: false, // Default false, but can be true if navigated to

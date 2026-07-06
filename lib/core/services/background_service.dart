@@ -60,6 +60,7 @@ void callbackDispatcher() {
             ).difference(DateTime(now.year, now.month, now.day)).inDays;
 
         if (daysLeft <= 5 && daysLeft > 0) {
+
           // Log daily
           await LocalNotificationServices.showSimpleNotification(
             'Product Expiry Alert',
