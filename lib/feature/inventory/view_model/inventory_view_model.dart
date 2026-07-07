@@ -1,3 +1,4 @@
+import 'package:easyexpire/core/utils/ocr_parser.dart';
 import 'package:easyexpire/feature/dashboard/viewmodel/dashboard_provider.dart';
 import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
 import 'package:easyexpire/feature/inventory/model/inventory_model.dart';
@@ -58,6 +59,23 @@ class InventoryViewModel extends ChangeNotifier {
   void setBarCode(String barcode) {
     _barcodeController.text = barcode;
     //calculateDaysRemaining("12/05/2024" as DateTime,DateTime.now());
+    notifyListeners();
+  }
+
+  /// Applies OCR-detected values to the form controllers.
+  ///
+  /// Only fills fields where [result] has a non-null value — existing
+  /// controller content is preserved for fields the OCR didn't detect.
+  void applyOcrResult(OcrParseResult result) {
+    if (result.batchNumber != null && result.batchNumber!.isNotEmpty) {
+      _batchNoController.text = result.batchNumber!;
+    }
+    if (result.expiryDate != null) {
+      combineDateWithCurrentTime(result.expiryDate!);
+      _dateController.text =
+          DateFormat('dd/MM/yyyy').format(result.expiryDate!);
+      calculateDaysRemaining(result.expiryDate!, DateTime.now());
+    }
     notifyListeners();
   }
 

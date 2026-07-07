@@ -1,7 +1,9 @@
 import 'dart:developer';
 
 import 'package:easyexpire/core/constant/app_assets.dart';
+import 'package:easyexpire/core/utils/ocr_parser.dart';
 import 'package:easyexpire/feature/inventory/view/barcode_scanner_screen.dart';
+import 'package:easyexpire/feature/inventory/view/ocr_scanner_screen.dart';
 import 'package:easyexpire/feature/inventory/view_model/inventory_view_model.dart';
 import 'package:easyexpire/widgets/app_primary_button.dart';
 import 'package:easyexpire/widgets/common_app_text.dart';
@@ -104,6 +106,25 @@ class AddNewProductScreen  extends StatelessWidget {
                           }
                         },
                       ),
+                      const SizedBox(height: 12),
+
+                      // Scan Package (OCR) Button
+                      CustomOutlinedIconButton(
+                        text: "Scan Package (Batch/Expiry)",
+                        icon: Icons.document_scanner_outlined,
+                        onTap: () async {
+                          final result = await Navigator.of(context).push<OcrParseResult>(
+                            MaterialPageRoute(
+                              builder: (context) => const OcrScannerScreen(),
+                            ),
+                          );
+
+                          if (result != null) {
+                            log("OCR RESULT======>: $result");
+                            provider.applyOcrResult(result);
+                          }
+                        },
+                      ),
                       const SizedBox(height: 24),
 
                       // Divider Line
@@ -157,6 +178,7 @@ class AddNewProductScreen  extends StatelessWidget {
                               label: "Expiry Date",
                               hintText: "mm/dd/yyyy",
                               readOnly: true,
+                              controller: provider.dateController,
                               onTap: () => provider.pickDate(context),
                               suffixIcon: Row(
                                 mainAxisSize: MainAxisSize.min,
