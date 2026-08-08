@@ -36,14 +36,14 @@ class HomeViewModel extends ChangeNotifier {
     // checkingForUpdate();
     var userData = await fetchUserDetails();
     if (userData != null) {
-      print("User ID: ${userData.id}");
-      print("Store Name: ${userData.storeName}");
-      print("Email: ${userData.email}");
+      log("User ID: ${userData.id}");
+      log("Store Name: ${userData.storeName}");
+      log("Email: ${userData.email}");
       userId = userData.id;
       getAllProduct(userId);
       notifyListeners();
     } else {
-      print("User not found.");
+      log("User not found.");
     }
     notifyListeners();
   }
@@ -69,14 +69,14 @@ class HomeViewModel extends ChangeNotifier {
     } on PlatformException catch (e) {
       if (e.code == 'TASK_FAILURE') {
         // Handle the install not allowed error
-        print('Update install not allowed: ${e.message}');
+        log('Update install not allowed: ${e.message}');
       } else {
         // Handle other PlatformExceptions
-        print('Platform exception during update: ${e.message}');
+        log('Platform exception during update: ${e.message}');
       }
     } catch (e) {
       // Handle other exceptions
-      print('Error during update check: $e');
+      log('Error during update check: $e');
     }
   }
 
@@ -107,6 +107,7 @@ class HomeViewModel extends ChangeNotifier {
   void setSelectedFilter(int? days) {
     selectedFilter = days;
     if (days == null) {
+      log("DAYS==ALL DAYS:$days");
       productFilteredList = List.from(productList);
     } else if (days == 0) {
       productFilteredList =
@@ -115,7 +116,7 @@ class HomeViewModel extends ChangeNotifier {
             // Parse 'dd-MM-yyyy' format correctly
             DateTime expiryDate = DateFormat("dd-MM-yyyy").parse(day);
 
-            log("DAYS:$days");
+            log("DAYS==0:$days");
             int daysLeft = expiryDate.difference(today).inDays;
             log("DAYS LEFT:$daysLeft");
             return daysLeft <= days;
@@ -163,10 +164,10 @@ class HomeViewModel extends ChangeNotifier {
       // Calculate days left and filter based on selected filter
       setSelectedFilter(null);
       _calculateDaysLeftAndFilter();
-      // setupNotification();
+      setupNotification();
       notifyListeners();
     } catch (e) {
-      print('Error fetching products: $e');
+      log('Error fetching products: $e');
       // Handle error (e.g., show a snackbar)
     }
   }
