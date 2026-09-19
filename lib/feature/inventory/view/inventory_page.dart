@@ -26,7 +26,10 @@ class InventoryPage extends StatelessWidget {
     final GlobalKey<FormState> localFormKey = GlobalKey<FormState>();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final inventoryProvider = Provider.of<InventoryViewModel>(context, listen: false);
+      final inventoryProvider = Provider.of<InventoryViewModel>(
+        context,
+        listen: false,
+      );
       inventoryProvider.initialize();
     });
 
@@ -39,7 +42,7 @@ class InventoryPage extends StatelessWidget {
         isBack: false, // Default false, but can be true if navigated to
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Image(image: AssetImage(AppAssets.appLogo),),
+          child: Image(image: AssetImage(AppAssets.appLogo)),
         ),
         actions: [
           IconButton(
@@ -243,7 +246,6 @@ class InventoryPage extends StatelessWidget {
       //   ),
       // ),
 
-
       ///UUUUUUUUUUU
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -296,7 +298,8 @@ class InventoryPage extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           FilterChipButton(
-                            text: "Expired (0 Days)", // Filter for items <= 0 days
+                            text:
+                                "Expired (0 Days)", // Filter for items <= 0 days
                             isSelected: homeViewModel.selectedFilter == 0,
                             onTap: () => homeViewModel.setSelectedFilter(0),
                           ),
@@ -314,7 +317,8 @@ class InventoryPage extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           FilterChipButton(
-                            text: "Expires in 1 Month", // Filter for items <= 0 days
+                            text:
+                                "Expires in 1 Month", // Filter for items <= 0 days
                             isSelected: homeViewModel.selectedFilter == 30,
                             onTap: () => homeViewModel.setSelectedFilter(30),
                           ),
@@ -323,7 +327,8 @@ class InventoryPage extends StatelessWidget {
                     ),
               ),
             ),
-          /*  Expanded(
+
+            /*  Expanded(
               child: Consumer<HomeViewModel>(
                 builder:
                     (context, provider, child) =>
@@ -502,96 +507,103 @@ class InventoryPage extends StatelessWidget {
                             ),
               ),
             ),*/
-
             Expanded(
-              child: Consumer<HomeViewModel>(builder: (context, viewModel, child) => ListView.builder(
-                itemCount: viewModel.productFilteredList.length,
-                itemBuilder: (context, index) {
-                  final product = viewModel.productFilteredList[index];
-                  final isExpiredOrToday = product.daysLeft! <= 0;
-                  final int maxQuantity = product.quantity != null && product.quantity! > 0
-                      ? (product.quantity! + 50) // Example: current quantity + 50, or some other logic
-                      : 100;
-                  final daysLeftText = product.daysLeft! > 0
-                      ? "${product.daysLeft} days left"
-                      : (product.daysLeft! == 0 ? "0 days left" : "${product.daysLeft} days left");
+              child: Consumer<HomeViewModel>(
+                builder:
+                    (context, viewModel, child) => ListView.builder(
+                      itemCount: viewModel.productFilteredList.length,
+                      itemBuilder: (context, index) {
+                        final product = viewModel.productFilteredList[index];
+                        final isExpiredOrToday = product.daysLeft! <= 0;
+                        final int maxQuantity =
+                            product.quantity != null && product.quantity! > 0
+                                ? (product.quantity! +
+                                    50) // Example: current quantity + 50, or some other logic
+                                : 100;
+                        final daysLeftText =
+                            product.daysLeft! > 0
+                                ? "${product.daysLeft} days left"
+                                : (product.daysLeft! == 0
+                                    ? "0 days left"
+                                    : "${product.daysLeft} days left");
 
-                  // return Card(
-                  //   margin: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 6.0),
-                  //   elevation: 2,
-                  //   shape: RoundedRectangleBorder(
-                  //     borderRadius: BorderRadius.circular(12),
-                  //     side: BorderSide(
-                  //       color: isExpiredOrToday ? Colors.red.shade100 : Colors.teal.shade100,
-                  //       width: 1.2,
-                  //     ),
-                  //   ),
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.all(16.0),
-                  //     child: Row(
-                  //       crossAxisAlignment: CrossAxisAlignment.center,
-                  //       children: [
-                  //         Expanded(
-                  //           child: Column(
-                  //             crossAxisAlignment: CrossAxisAlignment.start,
-                  //             children: [
-                  //               Text(
-                  //                 product.productName ?? 'Unknown Product',
-                  //                 style: const TextStyle(
-                  //                   fontSize: 16,
-                  //                   fontWeight: FontWeight.bold,
-                  //                   color: Colors.black87,
-                  //                 ),
-                  //                 maxLines: 2,
-                  //                 overflow: TextOverflow.ellipsis,
-                  //               ),
-                  //               const SizedBox(height: 4),
-                  //               Text(
-                  //                 "Expiry Date: ${product.expiryDate}", // Assuming expiryDate is already formatted
-                  //                 style: TextStyle(
-                  //                   fontSize: 13,
-                  //                   color: Colors.grey[600],
-                  //                 ),
-                  //               ),
-                  //               const SizedBox(height: 2),
-                  //               Text(
-                  //                 "QTY: ${product.quantity}",
-                  //                 style: TextStyle(
-                  //                   fontSize: 13,
-                  //                   color: Colors.grey[600],
-                  //                 ),
-                  //               ),
-                  //             ],
-                  //           ),
-                  //         ),
-                  //         const SizedBox(width: 12),
-                  //         // Days Left display
-                  //         Text(
-                  //           daysLeftText,
-                  //           style: TextStyle(
-                  //             fontSize: 18,
-                  //             fontWeight: FontWeight.bold,
-                  //             color: isExpiredOrToday ? Colors.red.shade700 : Colors.green.shade700,
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // );
-                  return ProductInventoryCard(
-                    // productName from InventoryModel
-                    productName: product.productName ?? 'Unknown Product',
-                    // batchId from InventoryModel (assuming 'batchNo' is the field)
-                    batchId: product.batchNo ?? 'N/A',
-                    // quantity from InventoryModel
-                    quantity: product.quantity ?? 0,
-                    // maxQuantity for the progress bar (see calculation above)
-                    maxQuantity: maxQuantity,
-                    // daysLeft from InventoryModel
-                    daysLeft: product.daysLeft ?? 0,
-                  );
-                },
-              ),),
+                        // return Card(
+                        //   margin: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 6.0),
+                        //   elevation: 2,
+                        //   shape: RoundedRectangleBorder(
+                        //     borderRadius: BorderRadius.circular(12),
+                        //     side: BorderSide(
+                        //       color: isExpiredOrToday ? Colors.red.shade100 : Colors.teal.shade100,
+                        //       width: 1.2,
+                        //     ),
+                        //   ),
+                        //   child: Padding(
+                        //     padding: const EdgeInsets.all(16.0),
+                        //     child: Row(
+                        //       crossAxisAlignment: CrossAxisAlignment.center,
+                        //       children: [
+                        //         Expanded(
+                        //           child: Column(
+                        //             crossAxisAlignment: CrossAxisAlignment.start,
+                        //             children: [
+                        //               Text(
+                        //                 product.productName ?? 'Unknown Product',
+                        //                 style: const TextStyle(
+                        //                   fontSize: 16,
+                        //                   fontWeight: FontWeight.bold,
+                        //                   color: Colors.black87,
+                        //                 ),
+                        //                 maxLines: 2,
+                        //                 overflow: TextOverflow.ellipsis,
+                        //               ),
+                        //               const SizedBox(height: 4),
+                        //               Text(
+                        //                 "Expiry Date: ${product.expiryDate}", // Assuming expiryDate is already formatted
+                        //                 style: TextStyle(
+                        //                   fontSize: 13,
+                        //                   color: Colors.grey[600],
+                        //                 ),
+                        //               ),
+                        //               const SizedBox(height: 2),
+                        //               Text(
+                        //                 "QTY: ${product.quantity}",
+                        //                 style: TextStyle(
+                        //                   fontSize: 13,
+                        //                   color: Colors.grey[600],
+                        //                 ),
+                        //               ),
+                        //             ],
+                        //           ),
+                        //         ),
+                        //         const SizedBox(width: 12),
+                        //         // Days Left display
+                        //         Text(
+                        //           daysLeftText,
+                        //           style: TextStyle(
+                        //             fontSize: 18,
+                        //             fontWeight: FontWeight.bold,
+                        //             color: isExpiredOrToday ? Colors.red.shade700 : Colors.green.shade700,
+                        //           ),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // );
+                        return ProductInventoryCard(
+                          // productName from InventoryModel
+                          productName: product.productName ?? 'Unknown Product',
+                          // batchId from InventoryModel (assuming 'batchNo' is the field)
+                          batchId: product.batchNo ?? 'N/A',
+                          // quantity from InventoryModel
+                          quantity: product.quantity ?? 0,
+                          // maxQuantity for the progress bar (see calculation above)
+                          maxQuantity: maxQuantity,
+                          // daysLeft from InventoryModel
+                          daysLeft: product.daysLeft ?? 0,
+                        );
+                      },
+                    ),
+              ),
             ),
           ],
         ),

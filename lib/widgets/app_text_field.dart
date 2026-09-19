@@ -45,19 +45,15 @@ class AppTextField extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     // Input fill — slightly offset from scaffold so it reads as a surface
-    final inputFill = isDark
-        ? const Color(0xFF111111)
-        : const Color(0xFFF7F8FA);
+    final inputFill =
+        isDark ? const Color(0xFF111111) : const Color(0xFFF7F8FA);
 
     // Border colors
-    final defaultBorder = isDark
-        ? const Color(0xFF2A2A2A)
-        : const Color(0xFFE0E0E0);
+    final defaultBorder =
+        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0);
 
     // Icon color
-    final iconColor = isEnabled
-        ? cs.primary
-        : cs.onSurface.withOpacity(0.38);
+    final iconColor = isEnabled ? cs.primary : cs.onSurface.withOpacity(0.38);
 
     final radius = BorderRadius.circular(10);
 
@@ -114,7 +110,8 @@ class AppTextField extends StatelessWidget {
           enabled: isEnabled,
           obscureText: isPassword,
           keyboardType: isPassword ? TextInputType.visiblePassword : inputType,
-          textInputAction: maxLines > 1 ? TextInputAction.newline : textInputAction,
+          textInputAction:
+              maxLines > 1 ? TextInputAction.newline : textInputAction,
           maxLines: isPassword ? 1 : maxLines,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: cs.onSurface,
@@ -132,16 +129,40 @@ class AppTextField extends StatelessWidget {
             ),
             filled: true,
             fillColor: inputFill,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 4,
+              vertical: 12,
+            ),
             prefixIcon: prefix,
             suffixIcon: suffix,
             // No labelText — label is the Text widget above
-            border: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: defaultBorder, width: 0.5)),
-            enabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: defaultBorder, width: 0.5)),
-            focusedBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: cs.primary, width: 1.5)),
-            disabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: defaultBorder.withOpacity(0.4), width: 0.5)),
-            errorBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: cs.error, width: 0.5)),
-            focusedErrorBorder: OutlineInputBorder(borderRadius: radius, borderSide: BorderSide(color: cs.error, width: 1.5)),
+            border: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(color: defaultBorder, width: 0.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(color: defaultBorder, width: 0.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(color: cs.primary, width: 1.5),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(
+                color: defaultBorder.withOpacity(0.4),
+                width: 0.5,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(color: cs.error, width: 0.5),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(color: cs.error, width: 1.5),
+            ),
             errorStyle: TextStyle(color: cs.error, fontSize: 11),
           ),
         ),

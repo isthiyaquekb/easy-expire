@@ -1,36 +1,8 @@
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easyexpire/feature/notification/model/notification_model.dart';
 import 'package:flutter/material.dart';
-
-class NotificationModel {
-  final String id;
-  final String title;
-  final String body;
-  final DateTime timestamp;
-  bool isRead;
-
-  NotificationModel({
-    required this.id,
-    required this.title,
-    required this.body,
-    required this.timestamp,
-    this.isRead = false,
-  });
-
-  factory NotificationModel.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    return NotificationModel(
-      id: doc.id,
-      title: data['title'] ?? 'Notification',
-      body: data['body'] ?? '',
-      timestamp:
-          data['timestamp'] != null
-              ? (data['timestamp'] as Timestamp).toDate()
-              : DateTime.now(),
-    );
-  }
-}
 
 class NotificationViewModel extends ChangeNotifier {
   final CollectionReference _notificationsRef = FirebaseFirestore.instance
@@ -43,20 +15,41 @@ class NotificationViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   Future<void> fetchNotifications(String userId) async {
+    if (userId.isEmpty) {
+      _notifications = [];
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
 
     try {
-      final querySnapshot =
-          await _notificationsRef
-              .where('user_id', isEqualTo: userId)
-              .orderBy('timestamp', descending: true)
-              .get();
+      try {
+        final querySnapshot =
+            await _notificationsRef
+                .where('user_id', isEqualTo: userId)
+                .orderBy('timestamp', descending: true)
+                .get();
 
-      _notifications =
-          querySnapshot.docs
-              .map((doc) => NotificationModel.fromFirestore(doc))
-              .toList();
+        _notifications =
+            querySnapshot.docs
+                .map((doc) => NotificationModel.fromFirestore(doc))
+                .toList();
+      } catch (indexError) {
+        log(
+          "Composite index missing or query error, attempting unindexed query fallback: $indexError",
+        );
+        final querySnapshot =
+            await _notificationsRef.where('user_id', isEqualTo: userId).get();
+
+        _notifications =
+            querySnapshot.docs
+                .map((doc) => NotificationModel.fromFirestore(doc))
+                .toList();
+        _notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      }
 
       log("Fetched ${_notifications.length} notifications.");
     } catch (e) {

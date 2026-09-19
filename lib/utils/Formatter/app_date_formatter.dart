@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class AppDateFormatter{
+class AppDateFormatter {
   AppDateFormatter._();
 
   static String formatDateTime(DateTime dateTime) {
@@ -14,7 +14,7 @@ class AppDateFormatter{
     return formatter.format(dateTime.toLocal());
   }
 
-  static String formatDDMMYYYYHHmm(String isoDate){
+  static String formatDDMMYYYYHHmm(String isoDate) {
     // Parse the ISO 8601 date string to a DateTime object
     DateTime dateTime = DateTime.parse(isoDate);
 
@@ -28,22 +28,28 @@ class AppDateFormatter{
   ///DATE TIME FROM EPOCH DATETIME
   static String fromEpochDateTime(int millisecondsSinceEpoch) {
     // Create a DateTime object from the milliseconds since epoch
-    DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, isUtc: true).toLocal();
+    DateTime dateTime =
+        DateTime.fromMillisecondsSinceEpoch(
+          millisecondsSinceEpoch,
+          isUtc: true,
+        ).toLocal();
 
     // Define the desired format
-    final DateFormat formatter = DateFormat('d MMMM yyyy - HH:mm a', 'es_ES'); // Spanish locale
+    final DateFormat formatter = DateFormat(
+      'd MMMM yyyy - HH:mm a',
+      'es_ES',
+    ); // Spanish locale
 
     // Format the DateTime object
     return formatter.format(dateTime);
   }
 
-  static String dateTimeFromFirebase(Timestamp timestamp){
+  static String dateTimeFromFirebase(Timestamp timestamp) {
     DateTime firebaseDate = timestamp.toDate();
     // Format the date as "dd-MM-yyyy"
     String formattedDate = DateFormat('dd-MM-yyyy').format(firebaseDate);
     return formattedDate;
   }
-
 
   static Timestamp firebaseTimestampFormatter(String dateTimeString) {
     try {

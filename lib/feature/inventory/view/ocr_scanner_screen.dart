@@ -104,7 +104,7 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
       }
 
       final backCamera = _cameras!.firstWhere(
-            (c) => c.lensDirection == CameraLensDirection.back,
+        (c) => c.lensDirection == CameraLensDirection.back,
         orElse: () => _cameras!.first,
       );
 
@@ -112,9 +112,10 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
         backCamera,
         ResolutionPreset.high,
         enableAudio: false,
-        imageFormatGroup: Platform.isAndroid
-            ? ImageFormatGroup.nv21
-            : ImageFormatGroup.bgra8888,
+        imageFormatGroup:
+            Platform.isAndroid
+                ? ImageFormatGroup.nv21
+                : ImageFormatGroup.bgra8888,
       );
 
       _cameraController = controller;
@@ -148,7 +149,9 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
         await controller.stopImageStream();
       }
     } on CameraException catch (e) {
-      log('OcrScannerScreen: Ignored CameraException stopping stream: ${e.code}');
+      log(
+        'OcrScannerScreen: Ignored CameraException stopping stream: ${e.code}',
+      );
     } catch (e) {
       log('OcrScannerScreen: Error stopping image stream: $e');
     }
@@ -160,12 +163,9 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
     if (_disposed || _isProcessing || _hasPopped) return;
     _isProcessing = true;
     _recognizeText(image).then((_) {
-      Future.delayed(
-        const Duration(milliseconds: _kRecognitionIntervalMs),
-            () {
-          if (mounted && !_disposed) _isProcessing = false;
-        },
-      );
+      Future.delayed(const Duration(milliseconds: _kRecognitionIntervalMs), () {
+        if (mounted && !_disposed) _isProcessing = false;
+      });
     });
   }
 
@@ -190,12 +190,14 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
       // Keep the best result seen in this window: prefer spatial matches
       // over fallback ones, and prefer filling in a field over a null one.
       if (currentResult.hasAnyResult) {
-        final betterExpiry = currentResult.expiryDate != null &&
+        final betterExpiry =
+            currentResult.expiryDate != null &&
             (_bestResultInWindow?.expiryDate == null ||
                 (currentResult.expirySource == OcrFieldSource.spatial &&
                     _bestResultInWindow?.expirySource !=
                         OcrFieldSource.spatial));
-        final betterBatch = currentResult.batchNumber != null &&
+        final betterBatch =
+            currentResult.batchNumber != null &&
             (_bestResultInWindow?.batchNumber == null ||
                 (currentResult.batchSource == OcrFieldSource.spatial &&
                     _bestResultInWindow?.batchSource !=
@@ -203,16 +205,22 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
 
         if (_bestResultInWindow == null || betterExpiry || betterBatch) {
           _bestResultInWindow = OcrParseResult(
-            expiryDate: currentResult.expiryDate ?? _bestResultInWindow?.expiryDate,
-            expirySource: currentResult.expiryDate != null
-                ? currentResult.expirySource
-                : _bestResultInWindow?.expirySource,
-            batchNumber: currentResult.batchNumber ?? _bestResultInWindow?.batchNumber,
-            batchSource: currentResult.batchNumber != null
-                ? currentResult.batchSource
-                : _bestResultInWindow?.batchSource,
+            expiryDate:
+                currentResult.expiryDate ?? _bestResultInWindow?.expiryDate,
+            expirySource:
+                currentResult.expiryDate != null
+                    ? currentResult.expirySource
+                    : _bestResultInWindow?.expirySource,
+            batchNumber:
+                currentResult.batchNumber ?? _bestResultInWindow?.batchNumber,
+            batchSource:
+                currentResult.batchNumber != null
+                    ? currentResult.batchSource
+                    : _bestResultInWindow?.batchSource,
           );
-          log('OcrScannerScreen: Accumulated best-in-window: $_bestResultInWindow');
+          log(
+            'OcrScannerScreen: Accumulated best-in-window: $_bestResultInWindow',
+          );
         }
       }
 
@@ -255,7 +263,7 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
       rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
     } else {
       var rotationCompensation =
-      _orientationOffset[_cameraController!.value.deviceOrientation];
+          _orientationOffset[_cameraController!.value.deviceOrientation];
       if (rotationCompensation == null) return null;
       if (camera.lensDirection == CameraLensDirection.front) {
         rotationCompensation = (sensorOrientation + rotationCompensation) % 360;
@@ -334,10 +342,7 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
           content: const Text(
             'No text detected. Try better lighting or hold the camera closer.',
           ),
-          action: SnackBarAction(
-            label: 'Retry',
-            onPressed: _retryDetection,
-          ),
+          action: SnackBarAction(label: 'Retry', onPressed: _retryDetection),
           duration: const Duration(seconds: 5),
         ),
       );
@@ -409,9 +414,7 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
     if (_isInitializing ||
         _cameraController == null ||
         !_cameraController!.value.isInitialized) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     return Stack(
@@ -495,14 +498,16 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
             Icon(
               Icons.no_photography_outlined,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               'Camera permission required',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -599,25 +604,28 @@ class _OverlayPainter extends CustomPainter {
     final rect = Rect.fromLTWH(hPad, top, size.width - hPad * 2, height);
     final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(16));
 
-    final path = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..addRRect(rrect)
-      ..fillType = PathFillType.evenOdd;
+    final path =
+        Path()
+          ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+          ..addRRect(rrect)
+          ..fillType = PathFillType.evenOdd;
 
     canvas.drawPath(path, dimPaint);
 
-    final borderPaint = Paint()
-      ..color = isSuccess ? Colors.greenAccent : Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
+    final borderPaint =
+        Paint()
+          ..color = isSuccess ? Colors.greenAccent : Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5;
     canvas.drawRRect(rrect, borderPaint);
 
     // Corner accents for a more "scanner-like" feel.
-    final cornerPaint = Paint()
-      ..color = isSuccess ? Colors.greenAccent : Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
+    final cornerPaint =
+        Paint()
+          ..color = isSuccess ? Colors.greenAccent : Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4
+          ..strokeCap = StrokeCap.round;
     const double cornerLen = 24;
 
     void drawCorner(Offset origin, Offset dx, Offset dy) {
@@ -625,10 +633,26 @@ class _OverlayPainter extends CustomPainter {
       canvas.drawLine(origin, origin + dy, cornerPaint);
     }
 
-    drawCorner(rect.topLeft, const Offset(cornerLen, 0), const Offset(0, cornerLen));
-    drawCorner(rect.topRight, const Offset(-cornerLen, 0), const Offset(0, cornerLen));
-    drawCorner(rect.bottomLeft, const Offset(cornerLen, 0), const Offset(0, -cornerLen));
-    drawCorner(rect.bottomRight, const Offset(-cornerLen, 0), const Offset(0, -cornerLen));
+    drawCorner(
+      rect.topLeft,
+      const Offset(cornerLen, 0),
+      const Offset(0, cornerLen),
+    );
+    drawCorner(
+      rect.topRight,
+      const Offset(-cornerLen, 0),
+      const Offset(0, cornerLen),
+    );
+    drawCorner(
+      rect.bottomLeft,
+      const Offset(cornerLen, 0),
+      const Offset(0, -cornerLen),
+    );
+    drawCorner(
+      rect.bottomRight,
+      const Offset(-cornerLen, 0),
+      const Offset(0, -cornerLen),
+    );
   }
 
   @override

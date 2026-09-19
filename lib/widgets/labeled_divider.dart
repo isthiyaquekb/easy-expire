@@ -12,12 +12,15 @@ class LabeledDivider extends StatelessWidget {
         const Expanded(child: Divider(color: Color(0xFFE0E0E0), thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(label.toUpperCase(),style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: Colors.grey[600],
-            letterSpacing: 1.2,
-          ),),
+          child: Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: Colors.grey[600],
+              letterSpacing: 1.2,
+            ),
+          ),
         ),
         const Expanded(child: Divider(color: Color(0xFFE0E0E0), thickness: 1)),
       ],

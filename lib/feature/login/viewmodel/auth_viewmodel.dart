@@ -21,9 +21,12 @@ class AuthViewModel extends ChangeNotifier {
   TextEditingController get passwordController => _passwordController;
 
   final TextEditingController _signupEmailController = TextEditingController();
-  final TextEditingController _signupPasswordController = TextEditingController();
-  final TextEditingController _signupStoreNameController = TextEditingController();
-  final TextEditingController _signupStoreAddressController = TextEditingController();
+  final TextEditingController _signupPasswordController =
+      TextEditingController();
+  final TextEditingController _signupStoreNameController =
+      TextEditingController();
+  final TextEditingController _signupStoreAddressController =
+      TextEditingController();
   final TextEditingController _signupPhoneController = TextEditingController();
 
   TextEditingController get signupEmailController => _signupEmailController;
@@ -96,7 +99,7 @@ class AuthViewModel extends ChangeNotifier {
         Toastification().show(
           type: ToastificationType.error,
           style: ToastificationStyle.flatColored,
-          title:Text("Invalid Credentials"),
+          title: Text("Invalid Credentials"),
           description: Text("Please check your email and password"),
           alignment: Alignment.topRight,
           autoCloseDuration: const Duration(seconds: 4),
@@ -222,7 +225,9 @@ class AuthViewModel extends ChangeNotifier {
 
   void togglePasswordVisibility() {
     _isPasswordVisible = !_isPasswordVisible;
-    print("AuthViewModel togglePasswordVisibility called ${_isPasswordVisible}");
+    print(
+      "AuthViewModel togglePasswordVisibility called ${_isPasswordVisible}",
+    );
     notifyListeners();
   }
 

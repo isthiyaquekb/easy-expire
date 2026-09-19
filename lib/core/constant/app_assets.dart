@@ -8,7 +8,6 @@ class AppAssets {
   static const String onBoard2 = "assets/png/onboardQR2.png";
   static const String onBoard3 = "assets/png/onboardQR3.png";
 
-
   //SVG ICONS
   static const String sad = "assets/svg/sad-face.svg";
   static const String happy = "assets/svg/smile-face.svg";
@@ -16,8 +15,6 @@ class AppAssets {
 
   // Bottom Nav
   static const String home = "assets/images/home.svg";
-
-
 
   // Icons
 
@@ -38,10 +35,6 @@ class AppAssets {
   static const String locationFilledIcon = "assets/svg/location-filled.svg";
   // static const String storeIcon = "assets/svg/store-outline.svg";
 
-
-
   //Lottie JSON
   static const String notFoundLottie = "assets/lottie/not_found.json";
-
-
 }

@@ -70,9 +70,9 @@ class OcrParseResult {
   /// (full-text fallback or an unlabeled guess).
   bool get hasLowConfidenceResult =>
       expirySource == OcrFieldSource.fullTextFallback ||
-          expirySource == OcrFieldSource.unlabeledGuess ||
-          batchSource == OcrFieldSource.fullTextFallback ||
-          batchSource == OcrFieldSource.unlabeledGuess;
+      expirySource == OcrFieldSource.unlabeledGuess ||
+      batchSource == OcrFieldSource.fullTextFallback ||
+      batchSource == OcrFieldSource.unlabeledGuess;
 
   /// Whether the batch field specifically came from an unlabeled guess —
   /// useful for UI callers that want to require extra confirmation before
@@ -84,7 +84,8 @@ class OcrParseResult {
   /// Compare date at month precision (MM/YYYY formats give day=1) and
   /// exact batch string.
   bool matchesFor(OcrParseResult other) {
-    final dateMatch = expiryDate == null && other.expiryDate == null ||
+    final dateMatch =
+        expiryDate == null && other.expiryDate == null ||
         (expiryDate != null &&
             other.expiryDate != null &&
             expiryDate!.year == other.expiryDate!.year &&
@@ -96,7 +97,8 @@ class OcrParseResult {
   }
 
   @override
-  String toString() => 'OcrParseResult('
+  String toString() =>
+      'OcrParseResult('
       'expiry: $expiryDate [${expirySource?.name}], '
       'batch: $batchNumber [${batchSource?.name}])';
 }
@@ -199,9 +201,7 @@ abstract class OcrParser {
   );
 
   /// YYYY-MM-DD (ISO 8601)
-  static final _yyyymmdd = RegExp(
-    r'\b(\d{4})-(\d{2})-(\d{2})\b',
-  );
+  static final _yyyymmdd = RegExp(r'\b(\d{4})-(\d{2})-(\d{2})\b');
 
   /// DD/MM/YY, DD-MM-YY, DD.MM.YY (new pattern for 2-digit year)
   static final _ddmmyy = RegExp(
@@ -216,9 +216,7 @@ abstract class OcrParser {
 
   /// MM/YYYY or MM-YYYY (no explicit day)
   /// Added negative lookahead to prevent matching partial DD/MM/YYYY
-  static final _mmyyyy = RegExp(
-    r'\b(\d{2})[\/\-](\d{4})\b(?![/\-. ]?\d{1,4})',
-  );
+  static final _mmyyyy = RegExp(r'\b(\d{2})[\/\-](\d{4})\b(?![/\-. ]?\d{1,4})');
 
   /// MM/YY or MM-YY (no explicit day)
   /// Added negative lookahead to prevent matching partial DD/MM/YY
@@ -227,14 +225,10 @@ abstract class OcrParser {
   );
 
   /// DDMMYY (6 consecutive digits, no separators)
-  static final _sixDigits = RegExp(
-    r'\b(\d{6})\b',
-  );
+  static final _sixDigits = RegExp(r'\b(\d{6})\b');
 
   /// MMYY (4 consecutive digits, no separators)
-  static final _fourDigits = RegExp(
-    r'\b(\d{4})\b',
-  );
+  static final _fourDigits = RegExp(r'\b(\d{4})\b');
 
   // ── Batch value pattern ───────────────────────────────────────────────────
 
@@ -246,15 +240,57 @@ abstract class OcrParser {
 
   // ── Month map ─────────────────────────────────────────────────────────────
   static const _monthMap = {
-    'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
-    'JUL': 7, 'AUG': 8, 'SEP': 9, 'OCT': 10, 'NOV': 11, 'DEC': 12,
+    'JAN': 1,
+    'FEB': 2,
+    'MAR': 3,
+    'APR': 4,
+    'MAY': 5,
+    'JUN': 6,
+    'JUL': 7,
+    'AUG': 8,
+    'SEP': 9,
+    'OCT': 10,
+    'NOV': 11,
+    'DEC': 12,
   };
 
   // ── Ignored batch words to avoid false positives ─────────────────────────
   static const _ignoredBatchWords = {
-    'the', 'lot', 'no', 'mfg', 'exp', 'date', 'net', 'ref', 'for', 'and', 'of',
-    'to', 'by', 'this', 'product', 'batch', 'number', 'use', 'before', 'best',
-    'val', 'dt', 'co', 'in', 'is', 'it', 'at', 'an', 'as', 'on', 'or', 'with', 'refer', 'last', 'two'
+    'the',
+    'lot',
+    'no',
+    'mfg',
+    'exp',
+    'date',
+    'net',
+    'ref',
+    'for',
+    'and',
+    'of',
+    'to',
+    'by',
+    'this',
+    'product',
+    'batch',
+    'number',
+    'use',
+    'before',
+    'best',
+    'val',
+    'dt',
+    'co',
+    'in',
+    'is',
+    'it',
+    'at',
+    'an',
+    'as',
+    'on',
+    'or',
+    'with',
+    'refer',
+    'last',
+    'two',
   };
 
   /// Whether [word] should be treated as noise rather than a real batch
@@ -271,7 +307,8 @@ abstract class OcrParser {
   static bool _isIgnoredBatchWord(String word) {
     if (RegExp(r'\d').hasMatch(word)) return false;
     final clean = word.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
-    if (clean.length <= 1) return true; // Ignore single letters or purely non-alpha
+    if (clean.length <= 1)
+      return true; // Ignore single letters or purely non-alpha
     return _ignoredBatchWords.contains(clean);
   }
 
@@ -296,7 +333,8 @@ abstract class OcrParser {
     // which represents the actual Expiry Date.
     if (result.expiryDate != null) {
       DateTime latestDate = result.expiryDate!;
-      OcrFieldSource finalSource = result.expirySource ?? OcrFieldSource.spatial;
+      OcrFieldSource finalSource =
+          result.expirySource ?? OcrFieldSource.spatial;
 
       final allPossibleDates = <DateTime>[];
       for (final line in allLines) {
@@ -308,7 +346,9 @@ abstract class OcrParser {
 
       for (final d in allPossibleDates) {
         if (d.isAfter(latestDate)) {
-          log("OcrParser: Post-parse correction - Found a later date '$d' than detected expiry '$latestDate'. Correcting expiry date to the later one.");
+          log(
+            "OcrParser: Post-parse correction - Found a later date '$d' than detected expiry '$latestDate'. Correcting expiry date to the later one.",
+          );
           latestDate = d;
           finalSource = OcrFieldSource.spatial;
         }
@@ -328,9 +368,9 @@ abstract class OcrParser {
   // ── Phase 1: spatial parse ────────────────────────────────────────────────
 
   static OcrParseResult _spatialParse(
-      List<TextLine> allLines,
-      String fullText,
-      ) {
+    List<TextLine> allLines,
+    String fullText,
+  ) {
     DateTime? expiryDate;
     OcrFieldSource? expirySource;
     String? batchNumber;
@@ -344,32 +384,46 @@ abstract class OcrParser {
       if (expiryDate == null && _expiryLabelRe.hasMatch(labelText)) {
         // Case A: value embedded on the same TextLine after stripping the label.
         final stripped = labelText.replaceAll(_expiryLabelRe, '').trim();
-        log("OcrParser: Spatial Expiry Case A - Stripped raw candidate string: '$stripped'");
+        log(
+          "OcrParser: Spatial Expiry Case A - Stripped raw candidate string: '$stripped'",
+        );
         final inlineDate = _parseDate(stripped);
         if (inlineDate != null) {
           expiryDate = inlineDate;
           expirySource = OcrFieldSource.spatial;
-          log("OcrParser: Spatial Expiry Case A - Succeeded. Date: $expiryDate");
+          log(
+            "OcrParser: Spatial Expiry Case A - Succeeded. Date: $expiryDate",
+          );
         } else {
-          log("OcrParser: Spatial Expiry Case A - Validation failed for '$stripped'. Trying Case B...");
+          log(
+            "OcrParser: Spatial Expiry Case A - Validation failed for '$stripped'. Trying Case B...",
+          );
           // Case B: find nearest spatially-adjacent line containing a date.
           final candidate = _findAdjacentValueLine(
             labelBox,
             allLines,
             exclude: labelLine,
             valueCheck: (text) {
-              log("OcrParser: Spatial Expiry Case B - Checking RAW candidate string: '$text'");
+              log(
+                "OcrParser: Spatial Expiry Case B - Checking RAW candidate string: '$text'",
+              );
               final d = _parseDate(text);
-              log("OcrParser: Spatial Expiry Case B - Validation result for '$text': $d");
+              log(
+                "OcrParser: Spatial Expiry Case B - Validation result for '$text': $d",
+              );
               return d != null;
             },
           );
           if (candidate != null) {
             expiryDate = _parseDate(candidate);
             expirySource = OcrFieldSource.spatial;
-            log("OcrParser: Spatial Expiry Case B - Succeeded. Candidate: '$candidate', Date: $expiryDate");
+            log(
+              "OcrParser: Spatial Expiry Case B - Succeeded. Candidate: '$candidate', Date: $expiryDate",
+            );
           } else {
-            log("OcrParser: Spatial Expiry Case B - Failed. No spatially-adjacent line passed validation.");
+            log(
+              "OcrParser: Spatial Expiry Case B - Failed. No spatially-adjacent line passed validation.",
+            );
           }
         }
       }
@@ -377,17 +431,27 @@ abstract class OcrParser {
       // ── Batch ─────────────────────────────────────────────────────────────
       if (batchNumber == null && _batchLabelRe.hasMatch(labelText)) {
         // Case A: value on same line after stripping label.
-        final stripped = labelText.replaceAll(_batchLabelRe, '')
-            .replaceAll(RegExp(r'^[\s:\-]+'), '')
-            .trim();
-        log("OcrParser: Spatial Batch Case A - Stripped raw candidate string: '$stripped'");
+        final stripped =
+            labelText
+                .replaceAll(_batchLabelRe, '')
+                .replaceAll(RegExp(r'^[\s:\-]+'), '')
+                .trim();
+        log(
+          "OcrParser: Spatial Batch Case A - Stripped raw candidate string: '$stripped'",
+        );
         final inlineBatch = _batchToken.firstMatch(stripped)?.group(1);
-        if (inlineBatch != null && inlineBatch.isNotEmpty && !_isIgnoredBatchWord(inlineBatch)) {
+        if (inlineBatch != null &&
+            inlineBatch.isNotEmpty &&
+            !_isIgnoredBatchWord(inlineBatch)) {
           batchNumber = inlineBatch;
           batchSource = OcrFieldSource.spatial;
-          log("OcrParser: Spatial Batch Case A - Succeeded. Batch: $batchNumber");
+          log(
+            "OcrParser: Spatial Batch Case A - Succeeded. Batch: $batchNumber",
+          );
         } else {
-          log("OcrParser: Spatial Batch Case A - Validation failed or ignored for '$stripped'. Trying Case B...");
+          log(
+            "OcrParser: Spatial Batch Case A - Validation failed or ignored for '$stripped'. Trying Case B...",
+          );
           // Case B: find nearest spatially-adjacent line that looks like a
           // batch token (alphanumeric, not another label, not a date).
           final candidate = _findAdjacentValueLine(
@@ -396,33 +460,47 @@ abstract class OcrParser {
             exclude: labelLine,
             valueCheck: (text) {
               final clean = text.trim();
-              log("OcrParser: Spatial Batch Case B - Checking RAW candidate string: '$clean'");
+              log(
+                "OcrParser: Spatial Batch Case B - Checking RAW candidate string: '$clean'",
+              );
               if (_expiryLabelRe.hasMatch(clean)) {
-                log("OcrParser: Spatial Batch Case B - Candidate '$clean' rejected because it matches expiry label.");
+                log(
+                  "OcrParser: Spatial Batch Case B - Candidate '$clean' rejected because it matches expiry label.",
+                );
                 return false;
               }
               if (_batchLabelRe.hasMatch(clean)) {
-                log("OcrParser: Spatial Batch Case B - Candidate '$clean' rejected because it matches batch label.");
+                log(
+                  "OcrParser: Spatial Batch Case B - Candidate '$clean' rejected because it matches batch label.",
+                );
                 return false;
               }
               final isMatch = _batchToken.hasMatch(clean);
               if (isMatch) {
                 final matchVal = _batchToken.firstMatch(clean)?.group(1);
                 if (matchVal != null && _isIgnoredBatchWord(matchVal)) {
-                  log("OcrParser: Spatial Batch Case B - Candidate '$clean' rejected because it matches ignored batch word.");
+                  log(
+                    "OcrParser: Spatial Batch Case B - Candidate '$clean' rejected because it matches ignored batch word.",
+                  );
                   return false;
                 }
               }
-              log("OcrParser: Spatial Batch Case B - Candidate '$clean' _batchToken match result: $isMatch");
+              log(
+                "OcrParser: Spatial Batch Case B - Candidate '$clean' _batchToken match result: $isMatch",
+              );
               return isMatch;
             },
           );
           if (candidate != null) {
             batchNumber = _batchToken.firstMatch(candidate)?.group(1);
             batchSource = OcrFieldSource.spatial;
-            log("OcrParser: Spatial Batch Case B - Succeeded. Candidate: '$candidate', Batch: $batchNumber");
+            log(
+              "OcrParser: Spatial Batch Case B - Succeeded. Candidate: '$candidate', Batch: $batchNumber",
+            );
           } else {
-            log("OcrParser: Spatial Batch Case B - Failed. No spatially-adjacent line passed validation.");
+            log(
+              "OcrParser: Spatial Batch Case B - Failed. No spatially-adjacent line passed validation.",
+            );
           }
         }
       }
@@ -434,14 +512,12 @@ abstract class OcrParser {
     final fallback = _fallbackParse(fullText);
 
     expiryDate ??= fallback.expiryDate;
-    expirySource ??= fallback.expiryDate != null
-        ? OcrFieldSource.fullTextFallback
-        : null;
+    expirySource ??=
+        fallback.expiryDate != null ? OcrFieldSource.fullTextFallback : null;
 
     batchNumber ??= fallback.batchNumber;
-    batchSource ??= fallback.batchNumber != null
-        ? OcrFieldSource.fullTextFallback
-        : null;
+    batchSource ??=
+        fallback.batchNumber != null ? OcrFieldSource.fullTextFallback : null;
 
     // ── Phase 3: unlabeled batch guess ──────────────────────────────────────
     // Only runs when NO batch label was found anywhere on the package (Phase 1
@@ -494,9 +570,9 @@ abstract class OcrParser {
   ///   - If no anchor is available, returns the first valid candidate in
   ///     reading order.
   static String? _findUnlabeledBatch(
-      List<TextLine> allLines, {
-        TextLine? anchorLine,
-      }) {
+    List<TextLine> allLines, {
+    TextLine? anchorLine,
+  }) {
     _TokenCandidate? best;
 
     for (final line in allLines) {
@@ -527,18 +603,20 @@ abstract class OcrParser {
 
         double score = _shapePenalty(token);
         if (anchorLine != null) {
-          final dY = (line.boundingBox.center.dy -
-              anchorLine.boundingBox.center.dy)
-              .abs();
-          final dX = (line.boundingBox.center.dx -
-              anchorLine.boundingBox.center.dx)
-              .abs();
+          final dY =
+              (line.boundingBox.center.dy - anchorLine.boundingBox.center.dy)
+                  .abs();
+          final dX =
+              (line.boundingBox.center.dx - anchorLine.boundingBox.center.dx)
+                  .abs();
           // Weight vertical proximity more heavily — batch/date pairs are
           // usually stacked in the same column more often than side by side.
           score += dY * 3.0 + dX;
         }
 
-        log("OcrParser: Phase 3 - Candidate '$token' from line '$text', score: $score");
+        log(
+          "OcrParser: Phase 3 - Candidate '$token' from line '$text', score: $score",
+        );
         if (best == null || score < best.score) {
           best = _TokenCandidate(token, score);
         }
@@ -555,7 +633,8 @@ abstract class OcrParser {
   /// leading letter (e.g. "o9639900", likely a barcode/reference fragment),
   /// are penalized so they lose to a proper candidate when both are present.
   static double _shapePenalty(String token) {
-    if (RegExp(r'^[A-Za-z]{1,2}\d{2,5}$').hasMatch(token)) return 0; // e.g. A1398
+    if (RegExp(r'^[A-Za-z]{1,2}\d{2,5}$').hasMatch(token))
+      return 0; // e.g. A1398
     if (RegExp(r'^[A-Za-z]\d{5,}$').hasMatch(token)) return 20; // e.g. o9639900
     if (RegExp(r'^\d+[A-Za-z]{1,2}$').hasMatch(token)) return 10; // e.g. 1398A
     return 15; // interleaved / irregular shape
@@ -573,11 +652,11 @@ abstract class OcrParser {
   ///
   /// Returns the text of the best candidate, or `null` if nothing found.
   static String? _findAdjacentValueLine(
-      Rect labelBox,
-      List<TextLine> allLines, {
-        required TextLine exclude,
-        required bool Function(String) valueCheck,
-      }) {
+    Rect labelBox,
+    List<TextLine> allLines, {
+    required TextLine exclude,
+    required bool Function(String) valueCheck,
+  }) {
     // Pre-compute label geometry.
     final labelCenterY = labelBox.center.dy;
     final labelHeight = labelBox.height.clamp(1.0, double.infinity);
@@ -649,11 +728,12 @@ abstract class OcrParser {
   /// Scans the flattened [fullText] string. This is the old line-by-line
   /// approach, now used only as a safety net.
   static OcrParseResult _fallbackParse(String fullText) {
-    final lines = fullText
-        .split('\n')
-        .map((l) => l.trim())
-        .where((l) => l.isNotEmpty)
-        .toList();
+    final lines =
+        fullText
+            .split('\n')
+            .map((l) => l.trim())
+            .where((l) => l.isNotEmpty)
+            .toList();
 
     DateTime? expiryDate;
     String? batchNumber;
@@ -662,7 +742,9 @@ abstract class OcrParser {
     // before passing the entire noisy string to _parseDate
     final dateCandidates = <String>[];
     dateCandidates.addAll(lines);
-    final allDigitsRegex = RegExp(r'\b(\d{4}|\d{6})\b'); // Find 4 or 6 digit numbers
+    final allDigitsRegex = RegExp(
+      r'\b(\d{4}|\d{6})\b',
+    ); // Find 4 or 6 digit numbers
     for (final match in allDigitsRegex.allMatches(fullText)) {
       dateCandidates.add(match.group(0)!);
     }
@@ -671,7 +753,9 @@ abstract class OcrParser {
     for (final candidate in dateCandidates) {
       expiryDate = _parseDate(candidate);
       if (expiryDate != null) {
-        log("OcrParser: Fallback Expiry - Succeeded with candidate: '$candidate'. Date: $expiryDate");
+        log(
+          "OcrParser: Fallback Expiry - Succeeded with candidate: '$candidate'. Date: $expiryDate",
+        );
         break;
       }
     }
@@ -682,30 +766,43 @@ abstract class OcrParser {
       // Re-check expiry with label if not found yet (just in case)
       if (expiryDate == null && _expiryLabelRe.hasMatch(line)) {
         final valuePart = line.replaceAll(_expiryLabelRe, '').trim();
-        log("OcrParser: Fallback Expiry (labeled) - Stripped raw candidate string: '$valuePart'");
+        log(
+          "OcrParser: Fallback Expiry (labeled) - Stripped raw candidate string: '$valuePart'",
+        );
         expiryDate = _parseDate(valuePart);
         if (expiryDate == null && i + 1 < lines.length) {
-          log("OcrParser: Fallback Expiry (labeled) - Trying next line: '${lines[i + 1]}'");
+          log(
+            "OcrParser: Fallback Expiry (labeled) - Trying next line: '${lines[i + 1]}'",
+          );
           expiryDate = _parseDate(lines[i + 1]);
         }
       }
 
       if (batchNumber == null && _batchLabelRe.hasMatch(line)) {
-        final valuePart = line
-            .replaceAll(_batchLabelRe, '')
-            .replaceAll(RegExp(r'^[\s:\-]+'), '')
-            .trim();
-        log("OcrParser: Fallback Batch - Stripped raw candidate string: '$valuePart'");
+        final valuePart =
+            line
+                .replaceAll(_batchLabelRe, '')
+                .replaceAll(RegExp(r'^[\s:\-]+'), '')
+                .trim();
+        log(
+          "OcrParser: Fallback Batch - Stripped raw candidate string: '$valuePart'",
+        );
         final m = _batchToken.firstMatch(valuePart);
         if (m != null && !_isIgnoredBatchWord(m.group(1)!)) {
           batchNumber = m.group(1);
-          log("OcrParser: Fallback Batch - Succeeded on same line: $batchNumber");
+          log(
+            "OcrParser: Fallback Batch - Succeeded on same line: $batchNumber",
+          );
         } else if (i + 1 < lines.length) {
-          log("OcrParser: Fallback Batch - Trying next line: '${lines[i + 1]}'");
+          log(
+            "OcrParser: Fallback Batch - Trying next line: '${lines[i + 1]}'",
+          );
           final nm = _batchToken.firstMatch(lines[i + 1]);
           if (nm != null && !_isIgnoredBatchWord(nm.group(1)!)) {
             batchNumber = nm.group(1);
-            log("OcrParser: Fallback Batch - Succeeded on next line: $batchNumber");
+            log(
+              "OcrParser: Fallback Batch - Succeeded on next line: $batchNumber",
+            );
           }
         }
       }
@@ -737,15 +834,23 @@ abstract class OcrParser {
       final day = int.tryParse(match.group(1)!);
       final month = int.tryParse(match.group(2)!);
       final year = int.tryParse(match.group(3)!);
-      if (day != null && month != null && year != null &&
-          month >= 1 && month <= 12 && day >= 1 && day <= 31 &&
-          year >= 2000 && year <= 2045) {
+      if (day != null &&
+          month != null &&
+          year != null &&
+          month >= 1 &&
+          month <= 12 &&
+          day >= 1 &&
+          day <= 31 &&
+          year >= 2000 &&
+          year <= 2045) {
         parsedDate = DateTime(year, month, day);
         patternName = "DD/MM/YYYY";
       }
     }
     if (parsedDate != null) {
-      log("OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate");
+      log(
+        "OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate",
+      );
       return parsedDate;
     }
 
@@ -755,15 +860,23 @@ abstract class OcrParser {
       final year = int.tryParse(match.group(1)!);
       final month = int.tryParse(match.group(2)!);
       final day = int.tryParse(match.group(3)!);
-      if (year != null && month != null && day != null &&
-          month >= 1 && month <= 12 && day >= 1 && day <= 31 &&
-          year >= 2000 && year <= 2045) {
+      if (year != null &&
+          month != null &&
+          day != null &&
+          month >= 1 &&
+          month <= 12 &&
+          day >= 1 &&
+          day <= 31 &&
+          year >= 2000 &&
+          year <= 2045) {
         parsedDate = DateTime(year, month, day);
         patternName = "YYYY-MM-DD";
       }
     }
     if (parsedDate != null) {
-      log("OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate");
+      log(
+        "OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate",
+      );
       return parsedDate;
     }
 
@@ -773,8 +886,13 @@ abstract class OcrParser {
       final day = int.tryParse(match.group(1)!);
       final month = int.tryParse(match.group(2)!);
       final yrShort = int.tryParse(match.group(3)!);
-      if (day != null && month != null && yrShort != null &&
-          month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      if (day != null &&
+          month != null &&
+          yrShort != null &&
+          month >= 1 &&
+          month <= 12 &&
+          day >= 1 &&
+          day <= 31) {
         final year = 2000 + yrShort;
         if (year >= 2000 && year <= 2045) {
           parsedDate = DateTime(year, month, day);
@@ -783,7 +901,9 @@ abstract class OcrParser {
       }
     }
     if (parsedDate != null) {
-      log("OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate");
+      log(
+        "OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate",
+      );
       return parsedDate;
     }
 
@@ -801,7 +921,9 @@ abstract class OcrParser {
       }
     }
     if (parsedDate != null) {
-      log("OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate");
+      log(
+        "OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate",
+      );
       return parsedDate;
     }
 
@@ -817,9 +939,16 @@ abstract class OcrParser {
       final y1 = int.tryParse(digits.substring(4, 6));
       if (d1 != null && m1 != null && y1 != null) {
         final year = 2000 + y1;
-        if (m1 >= 1 && m1 <= 12 && d1 >= 1 && d1 <= 31 && year >= 2000 && year <= 2045) {
+        if (m1 >= 1 &&
+            m1 <= 12 &&
+            d1 >= 1 &&
+            d1 <= 31 &&
+            year >= 2000 &&
+            year <= 2045) {
           parsedDate = DateTime(year, m1, d1);
-          log("OcrParser: Validation SUCCESS - Pattern: 6-digit DDMMYY, Matched: '${match.group(0)}', Date: $parsedDate");
+          log(
+            "OcrParser: Validation SUCCESS - Pattern: 6-digit DDMMYY, Matched: '${match.group(0)}', Date: $parsedDate",
+          );
           return parsedDate;
         }
       }
@@ -830,9 +959,16 @@ abstract class OcrParser {
       final d2 = int.tryParse(digits.substring(4, 6));
       if (y2 != null && m2 != null && d2 != null) {
         final year = 2000 + y2;
-        if (m2 >= 1 && m2 <= 12 && d2 >= 1 && d2 <= 31 && year >= 2000 && year <= 2045) {
+        if (m2 >= 1 &&
+            m2 <= 12 &&
+            d2 >= 1 &&
+            d2 <= 31 &&
+            year >= 2000 &&
+            year <= 2045) {
           parsedDate = DateTime(year, m2, d2);
-          log("OcrParser: Validation SUCCESS - Pattern: 6-digit YYMMDD, Matched: '${match.group(0)}', Date: $parsedDate");
+          log(
+            "OcrParser: Validation SUCCESS - Pattern: 6-digit YYMMDD, Matched: '${match.group(0)}', Date: $parsedDate",
+          );
           return parsedDate;
         }
       }
@@ -843,13 +979,22 @@ abstract class OcrParser {
       final y3 = int.tryParse(digits.substring(4, 6));
       if (m3 != null && d3 != null && y3 != null) {
         final year = 2000 + y3;
-        if (m3 >= 1 && m3 <= 12 && d3 >= 1 && d3 <= 31 && year >= 2000 && year <= 2045) {
+        if (m3 >= 1 &&
+            m3 <= 12 &&
+            d3 >= 1 &&
+            d3 <= 31 &&
+            year >= 2000 &&
+            year <= 2045) {
           parsedDate = DateTime(year, m3, d3);
-          log("OcrParser: Validation SUCCESS - Pattern: 6-digit MMDDYY, Matched: '${match.group(0)}', Date: $parsedDate");
+          log(
+            "OcrParser: Validation SUCCESS - Pattern: 6-digit MMDDYY, Matched: '${match.group(0)}', Date: $parsedDate",
+          );
           return parsedDate;
         }
       }
-      log("OcrParser: 6-digit candidate '$digits' failed all disambiguation checks.");
+      log(
+        "OcrParser: 6-digit candidate '$digits' failed all disambiguation checks.",
+      );
     }
 
     // --- Low Priority: 2-segment dates (with negative lookahead guards) ---
@@ -859,15 +1004,21 @@ abstract class OcrParser {
     if (match != null) {
       final month = int.tryParse(match.group(1)!);
       final year = int.tryParse(match.group(2)!);
-      if (month != null && year != null &&
-          month >= 1 && month <= 12 && year >= 2000 && year <= 2045) {
+      if (month != null &&
+          year != null &&
+          month >= 1 &&
+          month <= 12 &&
+          year >= 2000 &&
+          year <= 2045) {
         final lastDay = DateTime(year, month + 1, 0).day;
         parsedDate = DateTime(year, month, lastDay);
         patternName = "MM/YYYY";
       }
     }
     if (parsedDate != null) {
-      log("OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate");
+      log(
+        "OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate",
+      );
       return parsedDate;
     }
 
@@ -886,7 +1037,9 @@ abstract class OcrParser {
       }
     }
     if (parsedDate != null) {
-      log("OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate");
+      log(
+        "OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate",
+      );
       return parsedDate;
     }
 
@@ -906,7 +1059,9 @@ abstract class OcrParser {
       }
     }
     if (parsedDate != null) {
-      log("OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate");
+      log(
+        "OcrParser: Validation SUCCESS - Pattern: $patternName, Matched: '${match!.group(0)}', Date: $parsedDate",
+      );
       return parsedDate;
     }
 

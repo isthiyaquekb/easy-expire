@@ -37,7 +37,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProfileViewmodel()),
         ChangeNotifierProvider(create: (_) => SettingsViewmodel()),
         ChangeNotifierProvider(create: (_) => NotificationViewModel()),
-        ChangeNotifierProvider(create: (_) => ThemeViewModel(),),
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
       ],
       child: const MyApp(),
     ),
@@ -50,17 +50,19 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeViewModel>(builder: (context, themeVm, child) => ToastificationWrapper(
-      child: MaterialApp(
-        title: 'Easy Expire',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: themeVm.themeMode,
-        debugShowCheckedModeBanner: false,
-        initialRoute: AppRoutes.splash,
-        onGenerateRoute: AppRoutes.generatedRoutes,
-      ),
-    ),
+    return Consumer<ThemeViewModel>(
+      builder:
+          (context, themeVm, child) => ToastificationWrapper(
+            child: MaterialApp(
+              title: 'Easy Expire',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeVm.themeMode,
+              debugShowCheckedModeBanner: false,
+              initialRoute: AppRoutes.splash,
+              onGenerateRoute: AppRoutes.generatedRoutes,
+            ),
+          ),
     );
   }
 }

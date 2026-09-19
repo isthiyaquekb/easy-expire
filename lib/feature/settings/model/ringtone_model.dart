@@ -42,7 +42,10 @@ class RingtoneModel {
     }
 
     return RingtoneModel(
-      title: extractedTitle ?? titlePart.trim(), // Use extracted title if available, otherwise the part before " - "
+      title:
+          extractedTitle ??
+          titlePart
+              .trim(), // Use extracted title if available, otherwise the part before " - "
       path: uriPart.trim(),
       id: extractedId,
     );

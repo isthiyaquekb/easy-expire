@@ -1,5 +1,6 @@
 import 'package:easyexpire/core/constant/app_assets.dart';
 import 'package:easyexpire/core/constant/app_colors.dart';
+import 'package:easyexpire/feature/notification/model/notification_model.dart';
 import 'package:easyexpire/widgets/common_app_bar.dart';
 import 'package:easyexpire/widgets/notification_item_card.dart';
 import 'package:flutter/material.dart';
@@ -147,8 +148,6 @@ import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
 
 // file: easy-expire/lib/feature/notification/view/notification_page.dart
 
-
-
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
 
@@ -163,8 +162,11 @@ class _NotificationPageState extends State<NotificationPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final homeVm = Provider.of<HomeViewModel>(context, listen: false);
       final effectiveUserId = homeVm.userId.isEmpty ? null : homeVm.userId;
-      if(effectiveUserId!=null){
-        Provider.of<NotificationViewModel>(context, listen: false).fetchNotifications(effectiveUserId);
+      if (effectiveUserId != null) {
+        Provider.of<NotificationViewModel>(
+          context,
+          listen: false,
+        ).fetchNotifications(effectiveUserId);
       }
     });
   }
@@ -174,14 +176,20 @@ class _NotificationPageState extends State<NotificationPage> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = DateTime(now.year, now.month, now.day - 1);
-    final notificationDate = DateTime(timestamp.year, timestamp.month, timestamp.day);
+    final notificationDate = DateTime(
+      timestamp.year,
+      timestamp.month,
+      timestamp.day,
+    );
 
     if (notificationDate.isAtSameMomentAs(today)) {
       return 'TODAY';
     } else if (notificationDate.isAtSameMomentAs(yesterday)) {
       return 'YESTERDAY';
     } else {
-      return DateFormat('EEEE, MMMM d').format(timestamp).toUpperCase(); // e.g., MONDAY, JANUARY 1
+      return DateFormat(
+        'EEEE, MMMM d',
+      ).format(timestamp).toUpperCase(); // e.g., MONDAY, JANUARY 1
     }
   }
 
@@ -192,9 +200,9 @@ class _NotificationPageState extends State<NotificationPage> {
       appBar: CommonAppBar(
         title: "Notifications",
         isBack: false, // Default false, but can be true if navigated to
-        leading:Padding(
+        leading: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Image(image: AssetImage(AppAssets.appLogo),),
+          child: Image(image: AssetImage(AppAssets.appLogo)),
         ),
         actions: [
           IconButton(
@@ -217,11 +225,18 @@ class _NotificationPageState extends State<NotificationPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.notifications_none, size: 80, color: AppColors.labelTextColor),
+                  const Icon(
+                    Icons.notifications_none,
+                    size: 80,
+                    color: AppColors.labelTextColor,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     "No notifications yet.",
-                    style: TextStyle(color: AppColors.labelTextColor, fontSize: 16),
+                    style: TextStyle(
+                      color: AppColors.labelTextColor,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
@@ -251,16 +266,16 @@ class _NotificationPageState extends State<NotificationPage> {
             return dateB.compareTo(dateA); // Newest date first
           });
 
-
           // Calculate unread alerts (assuming NotificationModel has an 'isRead' field)
           // If your NotificationModel doesn't have isRead, you'd need to add it
-          final int unreadCount = viewModel.notifications.where((n) => !(n.isRead ?? false)).length;
-
+          final int unreadCount =
+              viewModel.notifications.where((n) => !(n.isRead ?? false)).length;
 
           return RefreshIndicator(
             onRefresh: () async {
               final homeVm = Provider.of<HomeViewModel>(context, listen: false);
-              final effectiveUserId = homeVm.userId.isEmpty ? 'test_user_id' : homeVm.userId;
+              final effectiveUserId =
+                  homeVm.userId.isEmpty ? 'test_user_id' : homeVm.userId;
               await viewModel.fetchNotifications(effectiveUserId);
             },
             child: ListView(
@@ -286,8 +301,9 @@ class _NotificationPageState extends State<NotificationPage> {
                         },
                         child: Text(
                           "Mark all as read",
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: AppColors.primary,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.labelLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -307,7 +323,6 @@ class _NotificationPageState extends State<NotificationPage> {
                       child: Text(
                         dateGroup,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppColors.headlineTextColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
@@ -320,17 +335,24 @@ class _NotificationPageState extends State<NotificationPage> {
                         title: notification.title,
                         body: notification.body,
                         timestamp: notification.timestamp,
-                        isRead: notification.isRead ?? false, // Use isRead if available in model
-                        onReviewBatch: notification.title.toLowerCase().contains('expiry alert')
-                            ? () {
-                          print("Review Batch for ${notification.id}");
-                          // TODO: Navigate to batch review screen
-                        }
-                            : null,
+                        isRead:
+                            notification.isRead ??
+                            false, // Use isRead if available in model
+                        onReviewBatch:
+                            notification.title.toLowerCase().contains(
+                                  'expiry alert',
+                                )
+                                ? () {
+                                  print("Review Batch for ${notification.id}");
+                                  // TODO: Navigate to batch review screen
+                                }
+                                : null,
                         onDismiss: () {
                           print("Dismiss notification ${notification.id}");
                           // TODO: Implement dismiss/archive logic in ViewModel
-                          viewModel.deleteNotification(notification.id); // Or a softer "dismiss"
+                          viewModel.deleteNotification(
+                            notification.id,
+                          ); // Or a softer "dismiss"
                         },
                       );
                     }).toList(),

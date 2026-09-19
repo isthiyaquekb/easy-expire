@@ -1,30 +1,17 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:easyexpire/feature/dashboard/viewmodel/dashboard_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:easyexpire/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('DashboardProvider Smoke Test', () {
+    test('default index is 0 and updates on changeBottomNavIndex', () {
+      final provider = DashboardProvider();
+      expect(provider.currentIndex, equals(0));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      provider.changeBottomNavIndex(2);
+      expect(provider.currentIndex, equals(2));
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      provider.changeBottomNavIndex(3);
+      expect(provider.currentIndex, equals(3));
+    });
   });
 }

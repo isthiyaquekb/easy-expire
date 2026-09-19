@@ -1,15 +1,16 @@
 import 'package:easyexpire/widgets/common_app_text.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
 class AppSpan {
   const AppSpan(
-      this.text, {
-        this.variant,
-        this.color,
-        this.bold = false,
-        this.onTap,
-        this.underline = false,
-      });
+    this.text, {
+    this.variant,
+    this.color,
+    this.bold = false,
+    this.onTap,
+    this.underline = false,
+  });
 
   final String text;
   final AppTextVariant? variant;
@@ -41,7 +42,8 @@ class AppRichText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final family = Theme.of(context).textTheme.bodyMedium?.fontFamily ?? 'Poppins';
+    final family =
+        Theme.of(context).textTheme.bodyMedium?.fontFamily ?? 'Poppins';
 
     return RichText(
       textAlign: textAlign,
@@ -55,7 +57,7 @@ class AppRichText extends StatelessWidget {
 
   InlineSpan _buildSpan(AppSpan span, ColorScheme cs, String family) {
     final variant = span.variant ?? baseVariant;
-    final spec    = AppTextSpec.of(variant);
+    final spec = AppTextSpec.of(variant);
 
     final color = span.color ?? AppTextSpec.defaultColor(variant, cs);
 
@@ -66,7 +68,8 @@ class AppRichText extends StatelessWidget {
       letterSpacing: spec.letterSpacing,
       height: spec.lineHeight / spec.size,
       color: color,
-      decoration: span.underline ? TextDecoration.underline : TextDecoration.none,
+      decoration:
+          span.underline ? TextDecoration.underline : TextDecoration.none,
       decorationColor: color,
     );
 
@@ -88,23 +91,48 @@ class AppTextSpec {
   final double letterSpacing;
   final double lineHeight;
 
-  const AppTextSpec(this.size, this.weight, this.letterSpacing, this.lineHeight);
+  const AppTextSpec(
+    this.size,
+    this.weight,
+    this.letterSpacing,
+    this.lineHeight,
+  );
 
   static AppTextSpec of(AppTextVariant v) => switch (v) {
-    AppTextVariant.headlineLg  => const AppTextSpec(24, FontWeight.w700, -0.48, 32),
-    AppTextVariant.headlineMd  => const AppTextSpec(20, FontWeight.w600, -0.20, 28),
-    AppTextVariant.bodyLg      => const AppTextSpec(16, FontWeight.w400,  0.00, 24),
-    AppTextVariant.bodySm      => const AppTextSpec(14, FontWeight.w400,  0.00, 20),
-    AppTextVariant.labelCaps   => const AppTextSpec(12, FontWeight.w600,  0.60, 16),
-    AppTextVariant.statDisplay => const AppTextSpec(32, FontWeight.w700, -0.96, 40),
+    AppTextVariant.headlineLg => const AppTextSpec(
+      24,
+      FontWeight.w700,
+      -0.48,
+      32,
+    ),
+    AppTextVariant.headlineMd => const AppTextSpec(
+      20,
+      FontWeight.w600,
+      -0.20,
+      28,
+    ),
+    AppTextVariant.bodyLg => const AppTextSpec(16, FontWeight.w400, 0.00, 24),
+    AppTextVariant.bodySm => const AppTextSpec(14, FontWeight.w400, 0.00, 20),
+    AppTextVariant.labelCaps => const AppTextSpec(
+      12,
+      FontWeight.w600,
+      0.60,
+      16,
+    ),
+    AppTextVariant.statDisplay => const AppTextSpec(
+      32,
+      FontWeight.w700,
+      -0.96,
+      40,
+    ),
   };
 
   static Color defaultColor(AppTextVariant v, ColorScheme cs) => switch (v) {
-    AppTextVariant.headlineLg  => cs.primary,
-    AppTextVariant.headlineMd  => cs.onSurface,
-    AppTextVariant.bodyLg      => cs.onSurface,
-    AppTextVariant.bodySm      => cs.onSurfaceVariant,
-    AppTextVariant.labelCaps   => cs.onSurfaceVariant,
+    AppTextVariant.headlineLg => cs.primary,
+    AppTextVariant.headlineMd => cs.onSurface,
+    AppTextVariant.bodyLg => cs.onSurface,
+    AppTextVariant.bodySm => cs.onSurfaceVariant,
+    AppTextVariant.labelCaps => cs.onSurfaceVariant,
     AppTextVariant.statDisplay => cs.onSurface,
   };
 }

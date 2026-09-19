@@ -1,7 +1,6 @@
 import 'package:easyexpire/feature/dashboard/view/dashboard.dart';
 import 'package:easyexpire/feature/home/view/home_page.dart';
 import 'package:easyexpire/feature/inventory/view/add_new_product_screen.dart';
-import 'package:easyexpire/feature/inventory/view/inventory_page.dart';
 import 'package:easyexpire/feature/login/view/login_page.dart';
 import 'package:easyexpire/feature/login/view/signup_page.dart';
 import 'package:easyexpire/feature/notification/view/notification_page.dart';
@@ -32,14 +31,15 @@ abstract class AppRoutes {
   static const notification = '/notification';
   static const ringtoneSelection = '/ringtone-selection';
 
-
   static Route<dynamic> generatedRoutes(RouteSettings routeSettings) {
     switch (routeSettings.name) {
       case splash:
         return MaterialPageRoute(builder: (context) => const SplashScreen());
 
       case onBoard:
-        return MaterialPageRoute(builder: (context) => const OnboardingScreen());
+        return MaterialPageRoute(
+          builder: (context) => const OnboardingScreen(),
+        );
       case login:
         return MaterialPageRoute(builder: (context) => const LoginPage());
       case signUp:
@@ -49,14 +49,22 @@ abstract class AppRoutes {
       case home:
         return MaterialPageRoute(builder: (context) => const HomePage());
       case notification:
-        return MaterialPageRoute(builder: (context) => const NotificationPage());
+        return MaterialPageRoute(
+          builder: (context) => const NotificationPage(),
+        );
       case profile:
         return MaterialPageRoute(builder: (context) => const ProfilePage());
 
-      case inventory:return MaterialPageRoute(builder: (context) => AddNewProductScreen());
-      case editProfile:return MaterialPageRoute(builder: (context) => const EditProfilePage());
-      case settings:return MaterialPageRoute(builder: (context) => const SettingsPage());
-      case ringtoneSelection:return MaterialPageRoute(builder: (context) => const RingtoneSelectionPage());
+      case inventory:
+        return MaterialPageRoute(builder: (context) => AddNewProductScreen());
+      case editProfile:
+        return MaterialPageRoute(builder: (context) => const EditProfilePage());
+      case settings:
+        return MaterialPageRoute(builder: (context) => const SettingsPage());
+      case ringtoneSelection:
+        return MaterialPageRoute(
+          builder: (context) => const RingtoneSelectionPage(),
+        );
 
       default:
         throw const FormatException("Route not found!, check routes again");

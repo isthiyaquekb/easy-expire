@@ -8,7 +8,8 @@ class ProfileButton extends StatelessWidget {
   final VoidCallback onTap;
   final bool isLogout;
 
-  const ProfileButton({super.key,
+  const ProfileButton({
+    super.key,
     required this.icon,
     required this.title,
     this.trailing,
@@ -21,13 +22,17 @@ class ProfileButton extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       leading: Icon(icon, color: isLogout ? Colors.red : Colors.grey[700]),
-      title: Text(title, style: TextStyle(
+      title: Text(
+        title,
+        style: TextStyle(
           fontWeight: FontWeight.w500,
-          color: isLogout ? Colors.red : null
-      )),
-      trailing: trailing != null
-          ? Text(trailing!, style: const TextStyle(color: Colors.grey))
-          : const Icon(Icons.chevron_right, size: 20),
+          color: isLogout ? Colors.red : null,
+        ),
+      ),
+      trailing:
+          trailing != null
+              ? Text(trailing!, style: const TextStyle(color: Colors.grey))
+              : const Icon(Icons.chevron_right, size: 20),
     );
   }
 }

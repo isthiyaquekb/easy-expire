@@ -19,7 +19,6 @@ class InventoryViewModel extends ChangeNotifier {
   TextEditingController _quantityController = TextEditingController();
   TextEditingController _batchNoController = TextEditingController();
 
-
   TextEditingController get barcodeController => _barcodeController;
   TextEditingController get nameController => _nameController;
   TextEditingController get dateController => _dateController;
@@ -29,7 +28,6 @@ class InventoryViewModel extends ChangeNotifier {
   // final formKey = GlobalKey<FormState>();
   GlobalKey<FormState> get formKey => GlobalKey<FormState>();
 
-
   var currentDate = DateTime.now();
   var currentDateTime = DateTime.now();
   var dayLeft = 0;
@@ -37,13 +35,13 @@ class InventoryViewModel extends ChangeNotifier {
   var selectedDate = "";
   var userId = "";
 
-  void initialize() async{
-    var userData=await fetchUserDetails();
+  void initialize() async {
+    var userData = await fetchUserDetails();
     if (userData != null) {
       print("User ID: ${userData.id}");
       print("Store Name: ${userData.storeName}");
       print("Email: ${userData.email}");
-      userId=userData.id;
+      userId = userData.id;
       notifyListeners();
     } else {
       print("User not found.");
@@ -72,8 +70,9 @@ class InventoryViewModel extends ChangeNotifier {
     }
     if (result.expiryDate != null) {
       combineDateWithCurrentTime(result.expiryDate!);
-      _dateController.text =
-          DateFormat('dd/MM/yyyy').format(result.expiryDate!);
+      _dateController.text = DateFormat(
+        'dd/MM/yyyy',
+      ).format(result.expiryDate!);
       calculateDaysRemaining(result.expiryDate!, DateTime.now());
     }
     notifyListeners();
@@ -107,17 +106,23 @@ class InventoryViewModel extends ChangeNotifier {
     final inputFormat = DateFormat("dd/MM/yyyy");
     // Parse the date string with the correct format
     DateTime parsedDate = inputFormat.parse(dateController.text);
-    DateTime tempDate =
-        DateFormat("yyyy-MM-dd hh:mm:ss").parse(parsedDate.toString());
+    DateTime tempDate = DateFormat(
+      "yyyy-MM-dd hh:mm:ss",
+    ).parse(parsedDate.toString());
     print("PRINTING FORMATTED DATE:$tempDate");
   }
 
   void pickDate(BuildContext context) async {
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    DateTime initial = currentDate.isBefore(today) ? today : currentDate;
+
     var pickedDate = await showDatePicker(
-        context: context,
-        initialDate: currentDate,
-        firstDate: DateTime.now(),
-        lastDate: DateTime(2040));
+      context: context,
+      initialDate: initial,
+      firstDate: today,
+      lastDate: DateTime(2040),
+    );
 
     if (pickedDate != null && pickedDate != currentDate) {
       combineDateWithCurrentTime(pickedDate);
@@ -126,6 +131,7 @@ class InventoryViewModel extends ChangeNotifier {
     nowDate = DateFormat('yyyy-MM-dd').format(currentDate).toString();
 
     selectedDate = DateFormat('dd/MM/yyyy').format(currentDate);
+    _dateController.text = selectedDate;
     calculateDaysRemaining(pickedDate!, DateTime.now());
     print("CURRENT DATE SELECTED :$selectedDate");
 
@@ -149,40 +155,51 @@ class InventoryViewModel extends ChangeNotifier {
     print('DATETIME NOW:${DateTime.now()}');
     print('CURRENT PICKED DATE TIME:$combinedDateTime');
     print('CURRENT PICKED DATE:$currentDate');
-
   }
 
   Future<void> submit(BuildContext context) async {
+    final effectiveUserId =
+        userId.isNotEmpty
+            ? userId
+            : (_firebaseServices.auth.currentUser?.uid ?? '');
     print("PRODUCT NAME:${nameController.text}");
     print("QUANTITY NAME:${quantityController.text}");
     print("DATE EXPIRY:$currentDate");
     print("DAY LEFT:$dayLeft");
     print("BATCH EXPIRY:${batchNoController.text}");
     var data = InventoryModel(
-        userId: userId,
-        productName: nameController.text,
-        expiryDate: AppDateFormatter.firebaseTimestampFormatter(currentDate.toString()),
-        batchNo: batchNoController.text,
-        quantity: int.parse(quantityController.text),daysLeft: dayLeft);
+      userId: effectiveUserId,
+      productName: nameController.text,
+      expiryDate: AppDateFormatter.firebaseTimestampFormatter(
+        currentDate.toString(),
+      ),
+      batchNo: batchNoController.text,
+      quantity: int.parse(quantityController.text),
+      daysLeft: dayLeft,
+    );
     await addProduct(data, context);
     print("JSON TO DB:${data.toMap()}");
   }
 
-  Future<void> addProduct(
-      InventoryModel data,
-      BuildContext context,
-      ) async {
+  Future<void> addProduct(InventoryModel data, BuildContext context) async {
     try {
-      await _firebaseServices.fireStore.collection(_firebaseServices.productCollection).add(data.toMap()).then((value) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Product added successfully')),
-        );
-        resetFields();
-        Provider.of<HomeViewModel>(context,listen: false).getAllProduct(userId);
-        Provider.of<DashboardProvider>(context, listen: false).changeBottomNavIndex(0);
-      },);
-
-
+      await _firebaseServices.fireStore
+          .collection(_firebaseServices.productCollection)
+          .add(data.toMap())
+          .then((value) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Product added successfully')),
+            );
+            resetFields();
+            Provider.of<HomeViewModel>(
+              context,
+              listen: false,
+            ).getAllProduct(userId);
+            Provider.of<DashboardProvider>(
+              context,
+              listen: false,
+            ).changeBottomNavIndex(0);
+          });
     } catch (e) {
       print('Error adding product: $e');
     }
@@ -204,11 +221,11 @@ class InventoryViewModel extends ChangeNotifier {
   }
 
   void resetFields() {
-    _barcodeController=TextEditingController();
-    _nameController=TextEditingController();
-    _quantityController=TextEditingController();
-    _dateController=TextEditingController();
-    _batchNoController=TextEditingController();
+    _barcodeController = TextEditingController();
+    _nameController = TextEditingController();
+    _quantityController = TextEditingController();
+    _dateController = TextEditingController();
+    _batchNoController = TextEditingController();
     notifyListeners();
   }
 }

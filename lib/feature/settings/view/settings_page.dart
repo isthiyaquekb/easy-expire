@@ -10,7 +10,10 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final settingsProvider = Provider.of<SettingsViewmodel>(context, listen: false);
+      final settingsProvider = Provider.of<SettingsViewmodel>(
+        context,
+        listen: false,
+      );
       settingsProvider.initialize();
     });
     return Scaffold(
@@ -24,7 +27,9 @@ class SettingsPage extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'Help',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           ListTile(
@@ -53,18 +58,23 @@ class SettingsPage extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'Settings',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
-          Consumer<SettingsViewmodel>(builder: (context, provider, child) =>  SwitchListTile(
-            secondary: const Icon(Icons.notifications_active_outlined),
-            title: const Text('Notifications'),
-            value: provider.isNotificationEnable,
-            onChanged: (val) {
-              // Toggle notification alert sound
-              provider.change(val);
-            },
-          ),),
+          Consumer<SettingsViewmodel>(
+            builder:
+                (context, provider, child) => SwitchListTile(
+                  secondary: const Icon(Icons.notifications_active_outlined),
+                  title: const Text('Notifications'),
+                  value: provider.isNotificationEnable,
+                  onChanged: (val) {
+                    // Toggle notification alert sound
+                    provider.change(val);
+                  },
+                ),
+          ),
           // ListTile(
           //   leading: const Icon(Icons.music_note_outlined),
           //   title: const Text('Set Ringtone'),

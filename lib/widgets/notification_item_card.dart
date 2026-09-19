@@ -15,10 +15,14 @@ enum NotificationType {
 
 // Function to infer NotificationType from title (ideally, this would come from the model)
 NotificationType _getNotificationType(String title) {
-  if (title.toLowerCase().contains('expiry alert')) return NotificationType.expiryAlert;
-  if (title.toLowerCase().contains('restock suggestion')) return NotificationType.restockSuggestion;
-  if (title.toLowerCase().contains('system update')) return NotificationType.systemUpdate;
-  if (title.toLowerCase().contains('delivery confirmed')) return NotificationType.deliveryConfirmed;
+  if (title.toLowerCase().contains('expiry alert'))
+    return NotificationType.expiryAlert;
+  if (title.toLowerCase().contains('restock suggestion'))
+    return NotificationType.restockSuggestion;
+  if (title.toLowerCase().contains('system update'))
+    return NotificationType.systemUpdate;
+  if (title.toLowerCase().contains('delivery confirmed'))
+    return NotificationType.deliveryConfirmed;
   return NotificationType.general;
 }
 
@@ -77,7 +81,9 @@ class NotificationItemCard extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6.0), // Spacing between cards
+      margin: const EdgeInsets.symmetric(
+        vertical: 6.0,
+      ), // Spacing between cards
       decoration: BoxDecoration(
         color: AppColors.notificationCardBackground,
         borderRadius: BorderRadius.circular(12),
@@ -111,10 +117,15 @@ class NotificationItemCard extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: AppColors.inputFillColor, // Light grey background
+                          color:
+                              AppColors.inputFillColor, // Light grey background
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Icon(icon, color: AppColors.bodyTextColor, size: 24),
+                        child: Icon(
+                          icon,
+                          color: AppColors.bodyTextColor,
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -123,7 +134,9 @@ class NotificationItemCard extends StatelessWidget {
                           children: [
                             Text(
                               title,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleMedium?.copyWith(
                                 color: AppColors.headlineTextColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -134,7 +147,9 @@ class NotificationItemCard extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               body,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.copyWith(
                                 color: AppColors.bodyTextColor,
                                 fontSize: 13,
                               ),
@@ -165,8 +180,10 @@ class NotificationItemCard extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: onReviewBatch,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.notificationActionPrimaryBg,
-                              foregroundColor: AppColors.notificationActionPrimaryText,
+                              backgroundColor:
+                                  AppColors.notificationActionPrimaryBg,
+                              foregroundColor:
+                                  AppColors.notificationActionPrimaryText,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -175,7 +192,10 @@ class NotificationItemCard extends StatelessWidget {
                             ),
                             child: const Text(
                               "Review Batch",
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -185,9 +205,14 @@ class NotificationItemCard extends StatelessWidget {
                           child: OutlinedButton(
                             onPressed: onDismiss,
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: AppColors.notificationCardBackground,
-                              foregroundColor: AppColors.notificationActionSecondaryText,
-                              side: const BorderSide(color: AppColors.notificationActionSecondaryBorder),
+                              backgroundColor:
+                                  AppColors.notificationCardBackground,
+                              foregroundColor:
+                                  AppColors.notificationActionSecondaryText,
+                              side: const BorderSide(
+                                color:
+                                    AppColors.notificationActionSecondaryBorder,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -196,7 +221,10 @@ class NotificationItemCard extends StatelessWidget {
                             ),
                             child: const Text(
                               "Dismiss",
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),

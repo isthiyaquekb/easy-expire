@@ -1,5 +1,3 @@
-
-
 import 'dart:ui';
 
 import 'package:easyexpire/core/constant/app_assets.dart';
@@ -7,11 +5,7 @@ import 'package:flutter/material.dart';
 
 class LoaderOverlay extends StatefulWidget {
   final bool isSignedIn;
-  const LoaderOverlay(
-      {super.key,
-        required this.isSignedIn,
-      }
-      );
+  const LoaderOverlay({super.key, required this.isSignedIn});
 
   @override
   State<LoaderOverlay> createState() => _LoaderOverlayState();
@@ -61,23 +55,24 @@ class _LoaderOverlayState extends State<LoaderOverlay>
                       // Ping ring
                       AnimatedBuilder(
                         animation: _ping,
-                        builder: (_, __) => Transform.scale(
-                          scale: 1.0 + _ping.value * 0.4,
-                          child: Opacity(
-                            opacity: (1 - _ping.value).clamp(0.0, 1.0),
-                            child: Container(
-                              width: 96,
-                              height: 96,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: cs.primary.withOpacity(0.2),
-                                  width: 2,
+                        builder:
+                            (_, __) => Transform.scale(
+                              scale: 1.0 + _ping.value * 0.4,
+                              child: Opacity(
+                                opacity: (1 - _ping.value).clamp(0.0, 1.0),
+                                child: Container(
+                                  width: 96,
+                                  height: 96,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: cs.primary.withOpacity(0.2),
+                                      width: 2,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
                       ),
                       // Logo box
                       Container(
@@ -91,7 +86,10 @@ class _LoaderOverlayState extends State<LoaderOverlay>
                             width: 1,
                           ),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 4),
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.06),
+                              blurRadius: 4,
+                            ),
                           ],
                         ),
                         clipBehavior: Clip.antiAlias,
@@ -103,11 +101,11 @@ class _LoaderOverlayState extends State<LoaderOverlay>
                     ],
                   ),
                 ),
-                const SizedBox(height:24),
+                const SizedBox(height: 24),
 
                 // "Signing in..."
-                Text(widget.isSignedIn?
-                'Signing in...':'Loading ...',
+                Text(
+                  widget.isSignedIn ? 'Signing in...' : 'Loading ...',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 16,

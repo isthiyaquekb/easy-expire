@@ -31,7 +31,7 @@ class CustomTextField extends StatelessWidget {
             fontSize: 11,
             fontWeight: FontWeight.bold,
             // color: Color(0xFF555555),
-            color:  Theme.of(context).colorScheme.onSurface,
+            color: Theme.of(context).colorScheme.onSurface,
             letterSpacing: 0.8,
           ),
         ),
@@ -41,18 +41,26 @@ class CustomTextField extends StatelessWidget {
           keyboardType: keyboardType,
           readOnly: readOnly,
           onTap: onTap,
-          style: TextStyle(fontSize: 15, color:  Theme.of(context).colorScheme.onSurface,),
+          style: TextStyle(
+            fontSize: 15,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 14,
+            ),
             filled: true,
-            fillColor:  Theme.of(context).colorScheme.surface,
+            fillColor: Theme.of(context).colorScheme.surface,
             suffixIcon: suffixIcon,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(4),
               // borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              borderSide: BorderSide( color:  Theme.of(context).colorScheme.onSurface,)
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(4),

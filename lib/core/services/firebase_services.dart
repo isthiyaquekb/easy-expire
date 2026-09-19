@@ -23,7 +23,9 @@ class FirebaseServices {
   final String productCollection = 'products';
 
   Future<void> initializeFirebase() async {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     // await requestNotificationPermission();
   }
 
@@ -37,11 +39,15 @@ class FirebaseServices {
     User? user = auth.currentUser;
     if (user != null) {
       // Query Firestore for the document where id == user.uid
-      QuerySnapshot querySnapshot = await fireStore
-          .collection(userCollection)
-          .where('id', isEqualTo: user.uid) // Match Firestore document with Firebase Auth UID
-          .limit(1)
-          .get();
+      QuerySnapshot querySnapshot =
+          await fireStore
+              .collection(userCollection)
+              .where(
+                'id',
+                isEqualTo: user.uid,
+              ) // Match Firestore document with Firebase Auth UID
+              .limit(1)
+              .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         var userData = querySnapshot.docs.first.data() as Map<String, dynamic>;
@@ -55,13 +61,13 @@ class FirebaseServices {
     return null;
   }
 
-
   Future<void> appLogout() async {
     auth.signOut();
     log("AUTH O SIGN OUT FIREBASE");
     storageBox.write(AppKeys.keyIsLoggedIn, false);
   }
- /* Future<void> requestNotificationPermission() async {
+
+  /* Future<void> requestNotificationPermission() async {
     NotificationSettings settings = await messaging.requestPermission(
       alert: true,
       badge: true,

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
 import 'package:easyexpire/feature/inventory/model/inventory_model.dart';
 import 'package:easyexpire/utils/Formatter/app_date_formatter.dart';
+import 'package:easyexpire/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/intl.dart';
 import 'package:workmanager/workmanager.dart';
@@ -12,8 +13,10 @@ void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
       log("Background task started: $task");
-      // 1. Initialize Firebase for the background isolate
-      await Firebase.initializeApp();
+      // 1. Initialize Firebase for the background isolate with platform options
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
 
       // 2. Initialize Notifications
       await LocalNotificationServices.init();
@@ -46,21 +49,12 @@ void callbackDispatcher() {
       // 4. Check expiry dates and trigger notifications + firestore logging
       for (int i = 0; i < productList.length; i++) {
         final product = productList[i];
-        final dateStr = AppDateFormatter.dateTimeFromFirebase(
-          product.expiryDate,
-        );
-        final expiryDate = DateFormat("dd-MM-yyyy").parse(dateStr);
+        final expiryDate = product.expiryDate.toDate();
         final now = DateTime.now();
 
-        final daysLeft =
-            DateTime(
-              expiryDate.year,
-              expiryDate.month,
-              expiryDate.day,
-            ).difference(DateTime(now.year, now.month, now.day)).inDays;
+        final daysLeft = expiryDate.difference(now).inDays;
 
         if (daysLeft <= 5 && daysLeft > 0) {
-
           // Log daily
           await LocalNotificationServices.showSimpleNotification(
             'Product Expiry Alert',

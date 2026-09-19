@@ -7,7 +7,11 @@ class LogoPainter extends CustomPainter {
 
     // Draw the background (optional)
     paint.color = Colors.white;
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), size.width / 1.5, paint);
+    canvas.drawCircle(
+      Offset(size.width / 2, size.height / 2),
+      size.width / 1.5,
+      paint,
+    );
 
     // Draw the barcode section (adjust line width and spacing)
     paint.color = Colors.black;
@@ -18,7 +22,7 @@ class LogoPainter extends CustomPainter {
 
     // Draw the "Expire" text
     paint.color = Colors.red;
-    paint.style = PaintingStyle.fill;  // Set to fill for solid text
+    paint.style = PaintingStyle.fill; // Set to fill for solid text
     const textStyle = TextStyle(
       fontSize: 24,
       fontWeight: FontWeight.w700,

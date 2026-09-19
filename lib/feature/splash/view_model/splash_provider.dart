@@ -12,7 +12,7 @@ class SplashProvider extends ChangeNotifier {
   void startTimer(BuildContext context) {
     storageBox.writeIfNull(AppKeys.keyIsLoggedIn, false);
     storageBox.writeIfNull(AppKeys.keyIsOnboardingStarted, false);
-    _timer = Timer(const Duration(seconds: 3), () => navigateToHome(context),);
+    _timer = Timer(const Duration(seconds: 3), () => navigateToHome(context));
   }
 
   @override

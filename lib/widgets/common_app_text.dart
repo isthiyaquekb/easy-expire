@@ -41,15 +41,15 @@ enum AppTextVariant {
 /// ```
 class CommonAppText extends StatelessWidget {
   const CommonAppText(
-      this.text, {
-        super.key,
-        required this.variant,
-        this.color,
-        this.textAlign,
-        this.maxLines,
-        this.overflow = TextOverflow.ellipsis,
-        this.softWrap = true,
-      });
+    this.text, {
+    super.key,
+    required this.variant,
+    this.color,
+    this.textAlign,
+    this.maxLines,
+    this.overflow = TextOverflow.ellipsis,
+    this.softWrap = true,
+  });
 
   final String text;
   final AppTextVariant variant;
@@ -65,7 +65,8 @@ class CommonAppText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final family = Theme.of(context).textTheme.bodyMedium?.fontFamily ?? 'Poppins';
+    final family =
+        Theme.of(context).textTheme.bodyMedium?.fontFamily ?? 'Poppins';
 
     final spec = _spec(variant);
 
@@ -90,24 +91,28 @@ class CommonAppText extends StatelessWidget {
     );
   }
 
-
   // ── Token specs ──────────────────────────────────────────────────────────
   static _TextSpec _spec(AppTextVariant v) => switch (v) {
-    AppTextVariant.headlineLg  => _TextSpec(24, FontWeight.w700, -0.02 * 24, 32),
-    AppTextVariant.headlineMd  => _TextSpec(20, FontWeight.w600, -0.01 * 20, 28),
-    AppTextVariant.bodyLg      => _TextSpec(16, FontWeight.w400, 0,           24),
-    AppTextVariant.bodySm      => _TextSpec(14, FontWeight.w400, 0,           20),
-    AppTextVariant.labelCaps   => _TextSpec(12, FontWeight.w600, 0.05 * 12,  16),
-    AppTextVariant.statDisplay => _TextSpec(32, FontWeight.w700, -0.03 * 32, 40),
+    AppTextVariant.headlineLg => _TextSpec(24, FontWeight.w700, -0.02 * 24, 32),
+    AppTextVariant.headlineMd => _TextSpec(20, FontWeight.w600, -0.01 * 20, 28),
+    AppTextVariant.bodyLg => _TextSpec(16, FontWeight.w400, 0, 24),
+    AppTextVariant.bodySm => _TextSpec(14, FontWeight.w400, 0, 20),
+    AppTextVariant.labelCaps => _TextSpec(12, FontWeight.w600, 0.05 * 12, 16),
+    AppTextVariant.statDisplay => _TextSpec(
+      32,
+      FontWeight.w700,
+      -0.03 * 32,
+      40,
+    ),
   };
 
   // ── Semantic color defaults ──────────────────────────────────────────────
   static Color _defaultColor(AppTextVariant v, ColorScheme cs) => switch (v) {
-    AppTextVariant.headlineLg  => cs.primary,
-    AppTextVariant.headlineMd  => cs.onSurface,
-    AppTextVariant.bodyLg      => cs.onSurface,
-    AppTextVariant.bodySm      => cs.onSurfaceVariant,
-    AppTextVariant.labelCaps   => cs.onSurfaceVariant,
+    AppTextVariant.headlineLg => cs.primary,
+    AppTextVariant.headlineMd => cs.onSurface,
+    AppTextVariant.bodyLg => cs.onSurface,
+    AppTextVariant.bodySm => cs.onSurfaceVariant,
+    AppTextVariant.labelCaps => cs.onSurfaceVariant,
     AppTextVariant.statDisplay => cs.onSurface,
   };
 }

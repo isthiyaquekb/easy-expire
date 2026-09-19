@@ -22,17 +22,29 @@ class UrgentAttentionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpired = daysLeft < 0;
     final isExpiringToday = daysLeft == 0;
-    final statusText = isExpired ? "Expired" : (isExpiringToday ? "Exp. Today" : "Urgent"); // 'Urgent' for positive days but near
-    final statusColor = isExpired ? const Color(0xFFD32F2F) : (isExpiringToday ? const Color(0xFFE65100) : Colors.amber.shade700);
+    final statusText =
+        isExpired
+            ? "Expired"
+            : (isExpiringToday
+                ? "Exp. Today"
+                : "Urgent"); // 'Urgent' for positive days but near
+    final statusColor =
+        isExpired
+            ? const Color(0xFFD32F2F)
+            : (isExpiringToday
+                ? const Color(0xFFE65100)
+                : Colors.amber.shade700);
 
-    final dividerColor = Theme.of(context).brightness == Brightness.dark ? Colors.white12 : const Color(0xFFEEEEEE);
+    final dividerColor =
+        Theme.of(context).brightness == Brightness.dark
+            ? Colors.white12
+            : const Color(0xFFEEEEEE);
     return Container(
-      decoration:  BoxDecoration(
-        border:(itemLength - 1) == index
-            ? null
-            : Border(
-          bottom: BorderSide(color: dividerColor, width: 1),
-        ),
+      decoration: BoxDecoration(
+        border:
+            (itemLength - 1) == index
+                ? null
+                : Border(bottom: BorderSide(color: dividerColor, width: 1)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Row(
@@ -46,7 +58,8 @@ class UrgentAttentionTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-              Icons.shopping_bag_outlined, // Changed to shopping_bag_outlined for general product
+              Icons
+                  .shopping_bag_outlined, // Changed to shopping_bag_outlined for general product
               color: Colors.grey[600],
             ),
           ),
@@ -69,10 +82,7 @@ class UrgentAttentionTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -92,10 +102,7 @@ class UrgentAttentionTile extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 "Qty: $quantity",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ),

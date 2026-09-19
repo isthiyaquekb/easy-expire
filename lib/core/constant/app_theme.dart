@@ -14,7 +14,7 @@ class AppTheme {
         tertiary: AppColors.lightTertiary,
         surface: AppColors.lightNeutral,
         background: AppColors.lightNeutral,
-        error: AppColors.toxicColor
+        error: AppColors.toxicColor,
       ),
       scaffoldBackgroundColor: AppColors.lightNeutral,
       appBarTheme: const AppBarTheme(
@@ -35,9 +35,11 @@ class AppTheme {
         primary: AppColors.darkPrimary,
         secondary: AppColors.darkSecondary,
         tertiary: AppColors.darkTertiary,
-        surface: Color(0xff1E1E1E), // Slightly lighter than neutral for card depth
+        surface: Color(
+          0xff1E1E1E,
+        ), // Slightly lighter than neutral for card depth
         background: AppColors.darkNeutral,
-        error: AppColors.toxicColor
+        error: AppColors.toxicColor,
       ),
       scaffoldBackgroundColor: AppColors.darkNeutral,
       appBarTheme: const AppBarTheme(

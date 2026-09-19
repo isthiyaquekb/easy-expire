@@ -5,13 +5,14 @@ UserModel userDataFromMap(String str) => UserModel.fromMap(json.decode(str));
 String userDataToMap(UserModel data) => json.encode(data.toMap());
 
 class UserModel {
-  UserModel(
-      {required this.id,
-        required this.storeName,
-        required this.storeAddress,
-        required this.email,
-        required this.phoneCode,
-        required this.phone});
+  UserModel({
+    required this.id,
+    required this.storeName,
+    required this.storeAddress,
+    required this.email,
+    required this.phoneCode,
+    required this.phone,
+  });
 
   String id;
   String storeName;

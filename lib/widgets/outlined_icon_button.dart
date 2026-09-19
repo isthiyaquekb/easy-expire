@@ -29,7 +29,11 @@ class CustomOutlinedIconButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 28, color: Theme.of(context).colorScheme.onSurface,),
+            Icon(
+              icon,
+              size: 28,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
             const SizedBox(width: 12),
             Text(
               text,

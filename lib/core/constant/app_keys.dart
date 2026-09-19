@@ -7,5 +7,4 @@ class AppKeys {
   static const keyIsOnboardingStarted = 'isStarted';
   static const keyUserId = 'user-id';
   static const keyIsPermissionEnabled = 'isPermissionEnabled';
-
 }

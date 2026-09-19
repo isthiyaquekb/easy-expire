@@ -20,67 +20,93 @@ class HomePage extends StatelessWidget {
       final homeProvider = Provider.of<HomeViewModel>(context, listen: false);
       homeProvider.checkForUpdate(context);
       homeProvider.initialize();
-      final effectiveUserId = homeProvider.userId.isEmpty ? null : homeProvider.userId;
-      if(effectiveUserId!=null){
-        Provider.of<NotificationViewModel>(context, listen: false).fetchNotifications(effectiveUserId);
+      final effectiveUserId =
+          homeProvider.userId.isEmpty ? null : homeProvider.userId;
+      if (effectiveUserId != null) {
+        Provider.of<NotificationViewModel>(
+          context,
+          listen: false,
+        ).fetchNotifications(effectiveUserId);
       }
     });
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       // appBar: CommonAppBar(title: "Home", isBack: false),
-        appBar: CommonAppBar(
-          title: "Home",
-          isBack: false, // Default false, but can be true if navigated to
-          leading: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Image(image: AssetImage(AppAssets.appLogo),),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurface),
-              onPressed: () {
-                // TODO: Implement search functionality for notifications
-                print("Search notifications tapped!");
-              },
+      appBar: CommonAppBar(
+        title: "Home",
+        isBack: false, // Default false, but can be true if navigated to
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image(image: AssetImage(AppAssets.appLogo)),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.search,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
-            Consumer<ThemeViewModel>(builder: (context, themeProvider, child) => IconButton(
-              icon: Icon(Theme.of(context).brightness == Brightness.dark
-    ? Icons.light_mode
-        : Icons.dark_mode, color: Theme.of(context).colorScheme.onSurface),
-              onPressed: () {
-                Provider.of<ThemeViewModel>(context, listen: false).toggleTheme();
-              },
-            ),)
-          ],
-         ),
+            onPressed: () {
+              // TODO: Implement search functionality for notifications
+              print("Search notifications tapped!");
+            },
+          ),
+          Consumer<ThemeViewModel>(
+            builder:
+                (context, themeProvider, child) => IconButton(
+                  icon: Icon(
+                    Theme.of(context).brightness == Brightness.dark
+                        ? Icons.light_mode
+                        : Icons.dark_mode,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  onPressed: () {
+                    Provider.of<ThemeViewModel>(
+                      context,
+                      listen: false,
+                    ).toggleTheme();
+                  },
+                ),
+          ),
+        ],
+      ),
       body: Consumer<HomeViewModel>(
         builder: (context, viewModel, child) {
           // Calculate statistics based on productList
           final now = DateTime.now();
           final today = DateTime(now.year, now.month, now.day);
 
-          final expiredItems = viewModel.productList.where((p) => p.daysLeft < 0).toList();
-          final expiringTodayItems = viewModel.productList.where((p) => p.daysLeft == 0).toList();
-          final totalSKUs = viewModel.productList.length; // Assuming each InventoryModel is one SKU
+          final expiredItems =
+              viewModel.productList.where((p) => p.daysLeft < 0).toList();
+          final expiringTodayItems =
+              viewModel.productList.where((p) => p.daysLeft == 0).toList();
+          final totalSKUs =
+              viewModel
+                  .productList
+                  .length; // Assuming each InventoryModel is one SKU
           final urgentAttentionItems = [
             ...expiredItems,
-            ...expiringTodayItems.where((p) => !expiredItems.contains(p)), // Avoid duplicates
-          ]..sort((a,b) => a.daysLeft!.compareTo(b.daysLeft!)); // Sort by days left, most expired first
+            ...expiringTodayItems.where(
+              (p) => !expiredItems.contains(p),
+            ), // Avoid duplicates
+          ]..sort(
+            (a, b) => a.daysLeft!.compareTo(b.daysLeft!),
+          ); // Sort by days left, most expired first
 
           // Safely calculate total quantity for safe status
           int safeStatusSKUs = 0;
           for (var product in viewModel.productList) {
-            safeStatusSKUs += product.quantity ?? 0; // Assuming quantity is int?
+            safeStatusSKUs +=
+                product.quantity ?? 0; // Assuming quantity is int?
           }
-
 
           return RefreshIndicator(
             onRefresh: () async {
               await viewModel.getAllProduct(viewModel.userId);
             },
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(), // Allows pull-to-refresh even if content is short
+              physics:
+                  const AlwaysScrollableScrollPhysics(), // Allows pull-to-refresh even if content is short
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,9 +135,18 @@ class HomePage extends StatelessWidget {
                     // badgeBgColor: const Color(0xFFFEE8E6), // Light red
                     // badgeTextColor: const Color(0xFFD32F2F), // Darker red
                     // borderColor: const Color(0xFFEF9A9A), // Red border
-                    badgeBgColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.shade900.withOpacity(0.3) : const Color(0xFFFEE8E6),
-                    badgeTextColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.shade200 : const Color(0xFFD32F2F),
-                    borderColor: Theme.of(context).brightness == Brightness.dark ? Colors.red.shade800 : const Color(0xFFEF9A9A),
+                    badgeBgColor:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Colors.red.shade900.withOpacity(0.3)
+                            : const Color(0xFFFEE8E6),
+                    badgeTextColor:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Colors.red.shade200
+                            : const Color(0xFFD32F2F),
+                    borderColor:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? Colors.red.shade800
+                            : const Color(0xFFEF9A9A),
                   ),
 
                   // Expiring Today Card
@@ -152,7 +187,10 @@ class HomePage extends StatelessWidget {
                       TextButton(
                         onPressed: () {
                           // TODO: Navigate to a detailed urgent attention list screen
-                          Navigator.pushNamed(context, '/home'); // Navigate to the other Home screen
+                          Navigator.pushNamed(
+                            context,
+                            '/home',
+                          ); // Navigate to the other Home screen
                         },
                         child: Text(
                           "View All",
@@ -179,7 +217,7 @@ class HomePage extends StatelessWidget {
                       ),
                     )
                   else
-                  // Limit to 3-5 items for the dashboard preview
+                    // Limit to 3-5 items for the dashboard preview
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.only(
@@ -188,20 +226,27 @@ class HomePage extends StatelessWidget {
                           bottomLeft: Radius.circular(12),
                           bottomRight: Radius.circular(12),
                         ),
-                        border: Border.all(color: AppColors.borderColor)
+                        border: Border.all(color: AppColors.borderColor),
                       ),
                       child: Column(
-                        children: urgentAttentionItems
-                            .take(5) // Display top 5 urgent items
-                            .map((product) => UrgentAttentionTile(
-                          productName: product.productName ?? 'N/A',
-                          subtitle: product.batchNo ?? 'N/A', // Prioritize batchNo, then location
-                          daysLeft: product.daysLeft ?? 0,
-                          quantity: product.quantity ?? 0,
-                          itemLength: urgentAttentionItems.length,
-                          index: urgentAttentionItems.indexOf(product),
-                        ))
-                            .toList(),
+                        children:
+                            urgentAttentionItems
+                                .take(5) // Display top 5 urgent items
+                                .map(
+                                  (product) => UrgentAttentionTile(
+                                    productName: product.productName ?? 'N/A',
+                                    subtitle:
+                                        product.batchNo ??
+                                        'N/A', // Prioritize batchNo, then location
+                                    daysLeft: product.daysLeft ?? 0,
+                                    quantity: product.quantity ?? 0,
+                                    itemLength: urgentAttentionItems.length,
+                                    index: urgentAttentionItems.indexOf(
+                                      product,
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                       ),
                     ),
                   const SizedBox(height: 24),
@@ -219,23 +264,32 @@ class HomePage extends StatelessWidget {
                   _buildQuickActionButton(
                     context,
                     Theme.of(context).brightness,
-                      Icons.qr_code_scanner_outlined, "Scan Batch", () {
-                    // TODO: Implement scan batch action
-                  }),
+                    Icons.qr_code_scanner_outlined,
+                    "Scan Batch",
+                    () {
+                      // TODO: Implement scan batch action
+                    },
+                  ),
                   const SizedBox(height: 8),
                   _buildQuickActionButton(
                     context,
-                      Theme.of(context).brightness,
-                      Icons.print_outlined, "Print Report", () {
-                    // TODO: Implement print report action
-                  }),
+                    Theme.of(context).brightness,
+                    Icons.print_outlined,
+                    "Print Report",
+                    () {
+                      // TODO: Implement print report action
+                    },
+                  ),
                   const SizedBox(height: 8),
                   _buildQuickActionButton(
                     context,
-                      Theme.of(context).brightness,
-                      Icons.inventory_outlined, "Inventory Check", () {
-                    // TODO: Implement inventory check action
-                  }),
+                    Theme.of(context).brightness,
+                    Icons.inventory_outlined,
+                    "Inventory Check",
+                    () {
+                      // TODO: Implement inventory check action
+                    },
+                  ),
                 ],
               ),
             ),
@@ -257,32 +311,56 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildQuickActionButton(
-      BuildContext context,
-  Brightness? isDark, IconData icon, String text, VoidCallback onPressed) {
+    BuildContext context,
+    Brightness? isDark,
+    IconData icon,
+    String text,
+    VoidCallback onPressed,
+  ) {
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: text=="Scan Batch"?Theme.of(context).colorScheme.primary:Theme.of(context).colorScheme.surface,
+          color:
+              text == "Scan Batch"
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: const Color(0xFFE0E0E0)),
         ),
         child: Row(
           children: [
-            Icon(icon, color:  text=="Scan Batch"?Theme.of(context).colorScheme.surface:Theme.of(context).colorScheme.onSurface, size: 24),
+            Icon(
+              icon,
+              color:
+                  text == "Scan Batch"
+                      ? Theme.of(context).colorScheme.surface
+                      : Theme.of(context).colorScheme.onSurface,
+              size: 24,
+            ),
             const SizedBox(width: 16),
             Text(
               text,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color:text=="Scan Batch"?Theme.of(context).colorScheme.surface: Theme.of(context).colorScheme.onSurface,
+                color:
+                    text == "Scan Batch"
+                        ? Theme.of(context).colorScheme.surface
+                        : Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const Spacer(),
-            Icon(Icons.arrow_forward_ios, color: text=="Scan Batch"?Theme.of(context).colorScheme.surface:Colors.grey[400], size: 18),
+            Icon(
+              Icons.arrow_forward_ios,
+              color:
+                  text == "Scan Batch"
+                      ? Theme.of(context).colorScheme.surface
+                      : Colors.grey[400],
+              size: 18,
+            ),
           ],
         ),
       ),
