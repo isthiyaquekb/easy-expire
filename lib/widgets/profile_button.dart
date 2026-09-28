@@ -1,4 +1,3 @@
-import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class ProfileButton extends StatelessWidget {
@@ -19,20 +18,37 @@ class ProfileButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListTile(
       onTap: onTap,
-      leading: Icon(icon, color: isLogout ? Colors.red : Colors.grey[700]),
+      leading: Icon(
+        icon,
+        color:
+            isLogout
+                ? Colors.red
+                : (isDark ? Colors.grey[300] : Colors.grey[700]),
+      ),
       title: Text(
         title,
         style: TextStyle(
           fontWeight: FontWeight.w500,
-          color: isLogout ? Colors.red : null,
+          color:
+              isLogout ? Colors.red : Theme.of(context).colorScheme.onSurface,
         ),
       ),
       trailing:
           trailing != null
-              ? Text(trailing!, style: const TextStyle(color: Colors.grey))
-              : const Icon(Icons.chevron_right, size: 20),
+              ? Text(
+                trailing!,
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              )
+              : Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
     );
   }
 }

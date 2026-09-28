@@ -53,7 +53,8 @@ class AppTextField extends StatelessWidget {
         isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E0E0);
 
     // Icon color
-    final iconColor = isEnabled ? cs.primary : cs.onSurface.withOpacity(0.38);
+    final iconColor =
+        isEnabled ? cs.primary : cs.onSurface.withValues(alpha: 0.38);
 
     final radius = BorderRadius.circular(10);
 
@@ -98,7 +99,7 @@ class AppTextField extends StatelessWidget {
             fontSize: 11,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.6,
-            color: cs.onSurface.withOpacity(0.5),
+            color: cs.onSurface.withValues(alpha: 0.5),
           ),
         ),
         const SizedBox(height: 6),
@@ -123,7 +124,7 @@ class AppTextField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: theme.textTheme.bodyMedium?.copyWith(
-              color: cs.onSurface.withOpacity(0.35),
+              color: cs.onSurface.withValues(alpha: 0.35),
               fontSize: 13,
               fontWeight: FontWeight.w400,
             ),
@@ -151,7 +152,7 @@ class AppTextField extends StatelessWidget {
             disabledBorder: OutlineInputBorder(
               borderRadius: radius,
               borderSide: BorderSide(
-                color: defaultBorder.withOpacity(0.4),
+                color: defaultBorder.withValues(alpha: 0.4),
                 width: 0.5,
               ),
             ),

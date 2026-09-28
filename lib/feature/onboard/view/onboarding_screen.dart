@@ -1,4 +1,4 @@
-import 'package:easyexpire/core/constant/app_colors.dart';
+import 'package:easyexpire/core/constant/app_assets.dart';
 import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/feature/onboard/view_model/onboarding_view_model.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +11,11 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onboardingProvider = context.read<OnboardingViewModel>();
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
           Consumer<OnboardingViewModel>(
@@ -50,8 +53,8 @@ class OnboardingScreen extends StatelessWidget {
                             Text(
                               value.onBoardingPageList[index].title,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: AppColors.white,
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurface,
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -60,8 +63,11 @@ class OnboardingScreen extends StatelessWidget {
                             Text(
                               value.onBoardingPageList[index].description,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: AppColors.white,
+                              style: TextStyle(
+                                color:
+                                    isDark
+                                        ? Colors.grey[400]
+                                        : Colors.grey[700],
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -77,17 +83,15 @@ class OnboardingScreen extends StatelessWidget {
             bottom: MediaQuery.of(context).viewInsets.bottom + 40,
             left: MediaQuery.of(context).size.width * 0.4,
             right: MediaQuery.of(context).size.width * 0.4,
-
             child: SmoothPageIndicator(
               controller: onboardingProvider.pageController,
               count: 3,
-              effect: const ExpandingDotsEffect(
+              effect: ExpandingDotsEffect(
                 dotHeight: 8,
                 dotWidth: 12,
-                dotColor: AppColors.white,
-                activeDotColor: AppColors.primary,
+                dotColor: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                activeDotColor: theme.colorScheme.primary,
                 expansionFactor: 3,
-                // strokeWidth: 5,
               ),
             ),
           ),
@@ -102,7 +106,7 @@ class OnboardingScreen extends StatelessWidget {
                             onTap: () => provider.goToNext(context),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: theme.colorScheme.primary,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Padding(
@@ -114,7 +118,7 @@ class OnboardingScreen extends StatelessWidget {
                                   child: Text(
                                     "Next",
                                     style: TextStyle(
-                                      color: AppColors.primary,
+                                      color: Colors.white,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -127,7 +131,7 @@ class OnboardingScreen extends StatelessWidget {
                             onTap: () => provider.goToNext(context),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: theme.colorScheme.primary,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Padding(
@@ -139,7 +143,7 @@ class OnboardingScreen extends StatelessWidget {
                                   child: Text(
                                     "Get Started",
                                     style: TextStyle(
-                                      color: AppColors.primary,
+                                      color: Colors.white,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -154,24 +158,22 @@ class OnboardingScreen extends StatelessWidget {
             top: MediaQuery.of(context).viewInsets.top + 40,
             right: MediaQuery.of(context).viewInsets.right + 24,
             child: InkWell(
-              onTap: () {
-                // Get.offAndToNamed(AppRoutes.login);
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => true);
-              },
+              onTap: () => onboardingProvider.skipOnboarding(context),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 4,
+                  ),
                   child: Center(
                     child: Text(
                       "Skip",
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: theme.colorScheme.onSurface,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),

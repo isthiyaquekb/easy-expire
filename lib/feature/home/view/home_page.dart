@@ -100,6 +100,7 @@ class HomePage extends StatelessWidget {
                 product.quantity ?? 0; // Assuming quantity is int?
           }
 
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           return RefreshIndicator(
             onRefresh: () async {
               await viewModel.getAllProduct(viewModel.userId);
@@ -111,9 +112,13 @@ class HomePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "Dashboard",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -121,7 +126,7 @@ class HomePage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
+                      color: isDark ? Colors.grey[300] : Colors.grey[800],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -132,21 +137,14 @@ class HomePage extends StatelessWidget {
                     count: expiredItems.length.toString(),
                     subtitle: "SKUs to pull immediately",
                     badgeText: "Action Required",
-                    // badgeBgColor: const Color(0xFFFEE8E6), // Light red
-                    // badgeTextColor: const Color(0xFFD32F2F), // Darker red
-                    // borderColor: const Color(0xFFEF9A9A), // Red border
                     badgeBgColor:
-                        Theme.of(context).brightness == Brightness.dark
-                            ? Colors.red.shade900.withOpacity(0.3)
+                        isDark
+                            ? Colors.red.shade900.withValues(alpha: 0.3)
                             : const Color(0xFFFEE8E6),
                     badgeTextColor:
-                        Theme.of(context).brightness == Brightness.dark
-                            ? Colors.red.shade200
-                            : const Color(0xFFD32F2F),
+                        isDark ? Colors.red.shade200 : const Color(0xFFD32F2F),
                     borderColor:
-                        Theme.of(context).brightness == Brightness.dark
-                            ? Colors.red.shade800
-                            : const Color(0xFFEF9A9A),
+                        isDark ? Colors.red.shade800 : const Color(0xFFEF9A9A),
                   ),
 
                   // Expiring Today Card
@@ -155,9 +153,18 @@ class HomePage extends StatelessWidget {
                     count: expiringTodayItems.length.toString(),
                     subtitle: "SKUs need discount review",
                     badgeText: "Markdowns",
-                    badgeBgColor: const Color(0xFFFFF3E0), // Light orange
-                    badgeTextColor: const Color(0xFFE65100), // Darker orange
-                    borderColor: const Color(0xFFFFCC80), // Orange border
+                    badgeBgColor:
+                        isDark
+                            ? Colors.orange.shade900.withValues(alpha: 0.3)
+                            : const Color(0xFFFFF3E0),
+                    badgeTextColor:
+                        isDark
+                            ? Colors.orange.shade200
+                            : const Color(0xFFE65100),
+                    borderColor:
+                        isDark
+                            ? Colors.orange.shade800
+                            : const Color(0xFFFFCC80),
                   ),
 
                   // Safe Status Card
@@ -166,9 +173,18 @@ class HomePage extends StatelessWidget {
                     count: safeStatusSKUs.toString(),
                     subtitle: "Total fresh inventory SKUs",
                     badgeText: "Optimal",
-                    badgeBgColor: const Color(0xFFE8F5E9), // Light green
-                    badgeTextColor: const Color(0xFF388E3C), // Darker green
-                    borderColor: const Color(0xFFA5D6A7), // Green border
+                    badgeBgColor:
+                        isDark
+                            ? Colors.green.shade900.withValues(alpha: 0.3)
+                            : const Color(0xFFE8F5E9),
+                    badgeTextColor:
+                        isDark
+                            ? Colors.green.shade200
+                            : const Color(0xFF388E3C),
+                    borderColor:
+                        isDark
+                            ? Colors.green.shade800
+                            : const Color(0xFFA5D6A7),
                   ),
                   const SizedBox(height: 24),
 
@@ -181,7 +197,7 @@ class HomePage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey[800],
+                          color: isDark ? Colors.grey[300] : Colors.grey[800],
                         ),
                       ),
                       TextButton(
@@ -212,7 +228,9 @@ class HomePage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 24.0),
                         child: Text(
                           "No urgent attention items at the moment.",
-                          style: TextStyle(color: Colors.grey[600]),
+                          style: TextStyle(
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
                         ),
                       ),
                     )
@@ -220,13 +238,11 @@ class HomePage extends StatelessWidget {
                     // Limit to 3-5 items for the dashboard preview
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          topRight: Radius.circular(12),
-                          bottomLeft: Radius.circular(12),
-                          bottomRight: Radius.circular(12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              isDark ? Colors.white12 : AppColors.borderColor,
                         ),
-                        border: Border.all(color: AppColors.borderColor),
                       ),
                       child: Column(
                         children:
@@ -257,7 +273,7 @@ class HomePage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
+                      color: isDark ? Colors.grey[300] : Colors.grey[800],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -312,11 +328,13 @@ class HomePage extends StatelessWidget {
 
   Widget _buildQuickActionButton(
     BuildContext context,
-    Brightness? isDark,
+    Brightness isDarkBrightness,
     IconData icon,
     String text,
     VoidCallback onPressed,
   ) {
+    final isDark = isDarkBrightness == Brightness.dark;
+    final isPrimary = text == "Scan Batch";
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(8),
@@ -324,19 +342,24 @@ class HomePage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color:
-              text == "Scan Batch"
+              isPrimary
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
+          border: Border.all(
+            color:
+                isPrimary
+                    ? Theme.of(context).colorScheme.primary
+                    : (isDark ? Colors.white12 : const Color(0xFFE0E0E0)),
+          ),
         ),
         child: Row(
           children: [
             Icon(
               icon,
               color:
-                  text == "Scan Batch"
-                      ? Theme.of(context).colorScheme.surface
+                  isPrimary
+                      ? Theme.of(context).colorScheme.onPrimary
                       : Theme.of(context).colorScheme.onSurface,
               size: 24,
             ),
@@ -347,8 +370,8 @@ class HomePage extends StatelessWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color:
-                    text == "Scan Batch"
-                        ? Theme.of(context).colorScheme.surface
+                    isPrimary
+                        ? Theme.of(context).colorScheme.onPrimary
                         : Theme.of(context).colorScheme.onSurface,
               ),
             ),
@@ -356,9 +379,9 @@ class HomePage extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios,
               color:
-                  text == "Scan Batch"
-                      ? Theme.of(context).colorScheme.surface
-                      : Colors.grey[400],
+                  isPrimary
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : (isDark ? Colors.grey[500] : Colors.grey[400]),
               size: 18,
             ),
           ],

@@ -161,75 +161,91 @@ class AddNewProductScreen extends StatelessWidget {
                             const SizedBox(height: 24),
 
                             // Form Container
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: const Color(0xFFE0E0E0),
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  // Product Name
-                                  CustomTextField(
-                                    label: "Product Name",
-                                    hintText: "e.g. Organic Avocados",
-                                    controller: provider.nameController,
+                            Builder(
+                              builder: (context) {
+                                final isDark =
+                                    Theme.of(context).brightness ==
+                                    Brightness.dark;
+                                final iconColor =
+                                    isDark
+                                        ? Colors.grey[400]
+                                        : Colors.grey[600];
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        Theme.of(context).colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color:
+                                          isDark
+                                              ? Colors.white12
+                                              : const Color(0xFFE0E0E0),
+                                    ),
                                   ),
-                                  const SizedBox(height: 16),
-
-                                  // Quantity and Batch Row
-                                  Row(
+                                  child: Column(
                                     children: [
-                                      Expanded(
-                                        child: CustomTextField(
-                                          label: "Quantity (Units)",
-                                          hintText: "0",
-                                          keyboardType: TextInputType.number,
-                                          controller:
-                                              provider.quantityController,
-                                        ),
+                                      // Product Name
+                                      CustomTextField(
+                                        label: "Product Name",
+                                        hintText: "e.g. Organic Avocados",
+                                        controller: provider.nameController,
                                       ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: CustomTextField(
-                                          label: "Batch Number",
-                                          hintText: "B-12345",
-                                          controller:
-                                              provider.batchNoController,
+                                      const SizedBox(height: 16),
+
+                                      // Quantity and Batch Row
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: CustomTextField(
+                                              label: "Quantity (Units)",
+                                              hintText: "0",
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              controller:
+                                                  provider.quantityController,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: CustomTextField(
+                                              label: "Batch Number",
+                                              hintText: "B-12345",
+                                              controller:
+                                                  provider.batchNoController,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+
+                                      // Expiry Date Field
+                                      CustomTextField(
+                                        label: "Expiry Date",
+                                        hintText: "mm/dd/yyyy",
+                                        readOnly: true,
+                                        controller: provider.dateController,
+                                        onTap: () => provider.pickDate(context),
+                                        suffixIcon: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.calendar_view_day_outlined,
+                                              color: iconColor,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.calendar_month_outlined,
+                                              color: iconColor,
+                                            ),
+                                            const SizedBox(width: 12),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 16),
-
-                                  // Expiry Date Field
-                                  CustomTextField(
-                                    label: "Expiry Date",
-                                    hintText: "mm/dd/yyyy",
-                                    readOnly: true,
-                                    controller: provider.dateController,
-                                    onTap: () => provider.pickDate(context),
-                                    suffixIcon: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_view_day_outlined,
-                                          color: Colors.grey[600],
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Icon(
-                                          Icons.calendar_month_outlined,
-                                          color: Colors.grey[600],
-                                        ),
-                                        const SizedBox(width: 12),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 24),
                           ],

@@ -7,9 +7,13 @@ class LabeledDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dividerColor = isDark ? Colors.white12 : const Color(0xFFE0E0E0);
+    final textColor = isDark ? Colors.grey[400] : Colors.grey[600];
+
     return Row(
       children: [
-        const Expanded(child: Divider(color: Color(0xFFE0E0E0), thickness: 1)),
+        Expanded(child: Divider(color: dividerColor, thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
@@ -17,12 +21,12 @@ class LabeledDivider extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w800,
-              color: Colors.grey[600],
+              color: textColor,
               letterSpacing: 1.2,
             ),
           ),
         ),
-        const Expanded(child: Divider(color: Color(0xFFE0E0E0), thickness: 1)),
+        Expanded(child: Divider(color: dividerColor, thickness: 1)),
       ],
     );
   }

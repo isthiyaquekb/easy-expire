@@ -52,16 +52,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeViewModel>(
       builder:
-          (context, themeVm, child) => ToastificationWrapper(
-            child: MaterialApp(
-              title: 'Easy Expire',
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: themeVm.themeMode,
-              debugShowCheckedModeBanner: false,
-              initialRoute: AppRoutes.splash,
-              onGenerateRoute: AppRoutes.generatedRoutes,
-            ),
+          (context, themeVm, child) => MaterialApp(
+            title: 'Easy Expire',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeVm.themeMode,
+            debugShowCheckedModeBanner: false,
+            initialRoute: AppRoutes.splash,
+            onGenerateRoute: AppRoutes.generatedRoutes,
+            builder:
+                (context, child) => ToastificationWrapper(
+                  child: child ?? const SizedBox.shrink(),
+                ),
           ),
     );
   }

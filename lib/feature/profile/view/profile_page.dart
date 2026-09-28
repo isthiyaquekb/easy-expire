@@ -1,6 +1,3 @@
-import 'dart:developer';
-
-import 'package:easyexpire/core/constant/app_assets.dart';
 import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
@@ -10,6 +7,8 @@ import 'package:easyexpire/widgets/profile_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+
+import 'package:easyexpire/core/theme/theme_view_model.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -24,8 +23,10 @@ class ProfilePage extends StatelessWidget {
       profileProvider.initialize();
     });
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CommonAppBar(title: "Profile", isBack: false),
       body: Consumer<ProfileViewmodel>(
         builder: (context, profileVm, child) {
@@ -65,40 +66,103 @@ class ProfilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  user.storeName ?? "User",
-                  style: const TextStyle(
+                  user.storeName.isNotEmpty ? user.storeName : "Store Manager",
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  user.storeName ?? "Store Manager",
-                  style: TextStyle(color: Colors.grey[600]),
+                  user.email.isNotEmpty ? user.email : "Store Manager",
+                  style: TextStyle(
+                    color: isDark ? Colors.grey.shade400 : Colors.grey[600],
+                  ),
                 ),
 
                 const SizedBox(height: 24),
 
                 // Store Details Container
-                _buildSection("STORE DETAILS", [
+                _buildSection(context, "STORE DETAILS", [
                   ListTile(
-                    leading: const Icon(Icons.store),
-                    title: const Text("Store Name"),
-                    subtitle: Text(user.storeName ?? ""),
+                    leading: Icon(
+                      Icons.store,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      "Store Name",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      user.storeName.isNotEmpty ? user.storeName : "Not set",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.location_on),
-                    title: const Text("Location"),
-                    subtitle: Text(user.storeAddress ?? ""),
+                    leading: Icon(
+                      Icons.location_on,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      "Location",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      user.storeAddress.isNotEmpty
+                          ? user.storeAddress
+                          : "Not set",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.email),
-                    title: const Text("Contact Email"),
-                    subtitle: Text(user.email ?? ""),
+                    leading: Icon(
+                      Icons.email,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(
+                      "Contact Email",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      user.email.isNotEmpty ? user.email : "Not set",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
                   ),
                 ]),
 
                 // Preferences Container
-                _buildSection("PREFERENCES & SETTINGS", [
+                _buildSection(context, "PREFERENCES & SETTINGS", [
                   ProfileButton(
                     icon: Icons.person_outline,
                     title: "Edit Profile",
@@ -109,13 +173,26 @@ class ProfilePage extends StatelessWidget {
                   ProfileButton(
                     icon: Icons.notifications_none,
                     title: "Notification Preferences",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoutes.settings);
+                    },
                   ),
-                  ProfileButton(
-                    icon: Icons.wb_sunny_outlined,
-                    title: "App Theme",
-                    trailing: "Light",
-                    onTap: () {},
+                  Consumer<ThemeViewModel>(
+                    builder: (context, themeVm, _) {
+                      final isDarkTheme =
+                          Theme.of(context).brightness == Brightness.dark;
+                      return ProfileButton(
+                        icon:
+                            isDarkTheme
+                                ? Icons.dark_mode_outlined
+                                : Icons.wb_sunny_outlined,
+                        title: "App Theme",
+                        trailing: isDarkTheme ? "Dark" : "Light",
+                        onTap: () {
+                          themeVm.toggleTheme();
+                        },
+                      );
+                    },
                   ),
                   ProfileButton(
                     icon: Icons.lock_outline,
@@ -148,11 +225,19 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-Widget _buildSection(String title, List<Widget> children) {
+Widget _buildSection(
+  BuildContext context,
+  String title,
+  List<Widget> children,
+) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
   return Container(
     margin: const EdgeInsets.only(bottom: 20),
     decoration: BoxDecoration(
-      border: Border.all(color: Colors.grey.shade300),
+      color: Theme.of(context).colorScheme.surface,
+      border: Border.all(
+        color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+      ),
       borderRadius: BorderRadius.circular(12),
     ),
     child: Column(
@@ -165,7 +250,7 @@ Widget _buildSection(String title, List<Widget> children) {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
+              color: isDark ? Colors.grey.shade400 : Colors.grey[600],
             ),
           ),
         ),
@@ -176,10 +261,10 @@ Widget _buildSection(String title, List<Widget> children) {
 }
 
 class ProfileTextWidget extends StatelessWidget {
-  String icons;
-  String title;
-  String value;
-  ProfileTextWidget({
+  final String icons;
+  final String title;
+  final String value;
+  const ProfileTextWidget({
     required this.icons,
     required this.title,
     required this.value,
@@ -208,17 +293,13 @@ class ProfileTextWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /* Text(title,style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.textColor),),*/
                 Text(
                   value,
                   maxLines: 2,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],

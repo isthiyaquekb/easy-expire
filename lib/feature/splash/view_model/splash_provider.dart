@@ -6,26 +6,61 @@ import 'package:get_storage/get_storage.dart';
 
 class SplashProvider extends ChangeNotifier {
   Timer? _timer;
+  bool _hasNavigated = false;
 
   final storageBox = GetStorage();
 
-  void startTimer(BuildContext context) {
+  bool get hasNavigated => _hasNavigated;
+
+  void startTimer(
+    BuildContext context, {
+    Duration duration = const Duration(seconds: 2),
+  }) {
+    if (_hasNavigated || (_timer != null && _timer!.isActive)) {
+      return;
+    }
+
     storageBox.writeIfNull(AppKeys.keyIsLoggedIn, false);
     storageBox.writeIfNull(AppKeys.keyIsOnboardingStarted, false);
-    _timer = Timer(const Duration(seconds: 3), () => navigateToHome(context));
+
+    _timer?.cancel();
+    _timer = Timer(duration, () {
+      if (context.mounted) {
+        navigateToHome(context);
+      }
+    });
+  }
+
+  void reset() {
+    _timer?.cancel();
+    _timer = null;
+    _hasNavigated = false;
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _timer = null;
     super.dispose();
   }
 
-  navigateToHome(BuildContext context) {
-    storageBox.read(AppKeys.keyIsOnboardingStarted)
-        ? storageBox.read(AppKeys.keyIsLoggedIn)
-            ? Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard)
-            : Navigator.of(context).pushReplacementNamed(AppRoutes.login)
-        : Navigator.of(context).pushReplacementNamed(AppRoutes.onBoard);
+  void navigateToHome(BuildContext context) {
+    if (_hasNavigated || !context.mounted) {
+      return;
+    }
+    _hasNavigated = true;
+    _timer?.cancel();
+    _timer = null;
+
+    final isOnboardingStarted =
+        storageBox.read(AppKeys.keyIsOnboardingStarted) == true;
+    final isLoggedIn = storageBox.read(AppKeys.keyIsLoggedIn) == true;
+
+    final String targetRoute =
+        isOnboardingStarted
+            ? (isLoggedIn ? AppRoutes.dashboard : AppRoutes.login)
+            : AppRoutes.onBoard;
+
+    Navigator.of(context).pushReplacementNamed(targetRoute);
   }
 }

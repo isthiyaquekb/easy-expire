@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easyexpire/core/constant/app_keys.dart';
+import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/core/services/ringtone_services.dart';
 import 'package:easyexpire/feature/settings/model/ringtone_model.dart';
 import 'package:easyexpire/utils/Permissions/app_permissions.dart';
@@ -9,15 +11,40 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 
 class SettingsViewmodel extends ChangeNotifier {
-  final player = AudioPlayer();
+  AudioPlayer? _player;
+  FirebaseFirestore? _firestore;
+  FirebaseAuth? _auth;
+
+  SettingsViewmodel({
+    AudioPlayer? player,
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  }) : _player = player,
+       _firestore = firestore,
+       _auth = auth;
+
+  AudioPlayer get player => _player ??= AudioPlayer();
+  FirebaseFirestore get firestore => _firestore ??= FirebaseFirestore.instance;
+  FirebaseAuth get auth => _auth ??= FirebaseAuth.instance;
+
   List<RingtoneModel> ringtoneList = [];
 
   bool _isNotificationEnable = false;
   bool get isNotificationEnable => _isNotificationEnable;
 
+  int _leadDays = 3;
+  int get leadDays => _leadDays;
+
+  String _selectedRingtone = 'Default (System)';
+  String get selectedRingtone => _selectedRingtone;
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
   void initialize() async {
     _loadInitialPermissionState();
-    // loadRingtones();
+    _loadPreferences();
+    loadRingtones();
   }
 
   Future<void> _loadInitialPermissionState() async {
@@ -27,36 +54,64 @@ class SettingsViewmodel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void loadRingtones() async {
-    var ringtones = await RingtoneService.getRingtones();
+  void _loadPreferences() {
+    final storage = GetStorage();
+    _leadDays = storage.read<int>(AppKeys.keyLeadDays) ?? 3;
+    _selectedRingtone =
+        storage.read<String>(AppKeys.keySelectedRingtone) ?? 'Default (System)';
+    notifyListeners();
+  }
 
-    for (var toneData in ringtones) {
-      // Assuming RingtoneService.getRingtones() returns a list of maps
-      // that already contain 'title' and 'uri' keys.
-      ringtoneList.add(
-        RingtoneModel(
-          title: toneData['title'] as String,
-          path: toneData['path'] as String,
-          // You might want to extract the ID here if your RingtoneService provides it directly
-          id: _extractIdFromUri(toneData['path'] as String),
-        ),
-      );
-      // print("Ringtone Object: $ringtoneList");
-      print("Ringtone URI: ${toneData['path']}");
-      notifyListeners();
-    }
+  Future<void> setLeadDays(int days) async {
+    _leadDays = days;
+    notifyListeners();
+    final storage = GetStorage();
+    await storage.write(AppKeys.keyLeadDays, days);
+  }
 
-    for (var tone in ringtones) {
-      print("Ringtone: ${tone['title']} - ${tone['path']}");
+  Future<void> selectRingtone(RingtoneModel tone) async {
+    _selectedRingtone = tone.title;
+    notifyListeners();
+    final storage = GetStorage();
+    await storage.write(AppKeys.keySelectedRingtone, tone.title);
+  }
+
+  Future<void> loadRingtones() async {
+    try {
+      final ringtones = await RingtoneService.getRingtones();
+      ringtoneList.clear();
+
+      for (var toneData in ringtones) {
+        ringtoneList.add(
+          RingtoneModel(
+            title: toneData['title'] as String? ?? 'Tone',
+            path: toneData['path'] as String? ?? '',
+            id: _extractIdFromUri(toneData['path'] as String? ?? ''),
+          ),
+        );
+      }
+    } catch (e) {
+      log("Platform ringtone load failed, using standard sound options: $e");
+      // Provide built-in ringtone presets if system channel is unavailable
+      ringtoneList = [
+        RingtoneModel(title: 'Default (System)', path: 'default', id: 1),
+        RingtoneModel(title: 'Chime Bell', path: 'chime', id: 2),
+        RingtoneModel(title: 'Pulse Alert', path: 'pulse', id: 3),
+        RingtoneModel(title: 'Gentle Ping', path: 'ping', id: 4),
+        RingtoneModel(title: 'Urgent Alarm', path: 'alarm', id: 5),
+      ];
     }
+    notifyListeners();
   }
 
   void playSound(String path) async {
-    log("LOG PATH:$path");
+    log("Playing preview sound: $path");
     try {
-      await player.play(DeviceFileSource(path), volume: 2);
+      if (path.isNotEmpty && !path.startsWith('http')) {
+        await player.play(DeviceFileSource(path), volume: 1.0);
+      }
     } catch (e) {
-      print("Error playing with audioplayers: $e");
+      log("Error playing audio: $e");
     }
   }
 
@@ -64,11 +119,9 @@ class SettingsViewmodel extends ChangeNotifier {
     if (val) {
       bool permissionGranted =
           await AppPermissions.instance.requestNotificationPermission();
-      _isNotificationEnable = permissionGranted; // State is now reliable
-      log("onChange value: $_isNotificationEnable"); // Use the updated state
+      _isNotificationEnable = permissionGranted;
     } else {
       _isNotificationEnable = false;
-      log("onChange value: $_isNotificationEnable"); // Use the updated state
     }
     notifyListeners();
     final storageBox = GetStorage();
@@ -78,142 +131,303 @@ class SettingsViewmodel extends ChangeNotifier {
     );
   }
 
-  /*  Future<void> change(bool value) async {
-    if (value) {
-      // User wants to ENABLE notifications
-      bool permissionGranted = await AppPermissions.instance.requestNotificationPermission();
+  Future<void> submitFeedback({
+    required String type,
+    required String title,
+    required String description,
+    int? rating,
+  }) async {
+    final user = auth.currentUser;
+    final payload = {
+      'userId': user?.uid ?? 'anonymous',
+      'userEmail': user?.email ?? '',
+      'type': type,
+      'title': title,
+      'description': description,
+      if (rating != null) 'rating': rating,
+      'createdAt': FieldValue.serverTimestamp(),
+      'appVersion': '1.0.0',
+    };
 
-      if (permissionGranted) {
-        _isNotificationEnable = true;
-        log("User enabled notifications and permission granted.");
-      } else {
-        // Permission denied by user or system (e.g., permanently denied)
-        _isNotificationEnable = false;
-        log("User attempted to enable notifications, but permission was denied.");
-        // Optionally, show a message or direct to settings if permanently denied
-        if (await Permission.notification.isPermanentlyDenied) {
-          // TODO: Direct user to app settings
-          log("Notification permission is permanently denied. User must enable in settings.");
-        }
-      }
-    } else {
-      // User wants to DISABLE notifications via the toggle
-      _isNotificationEnable = false;
-      log("User disabled notifications via toggle.");
-      // Optional: Cancel all scheduled notifications if disabling
-      // await LocalNotificationServices.cancelAllNotifications(); // Implement if needed
+    try {
+      await firestore.collection('feedback').add(payload);
+      log("Feedback submitted successfully: $payload");
+    } catch (e) {
+      log("Error submitting feedback to Firestore: $e");
+      // Even if Firestore fails (e.g. offline), we complete gracefully
     }
+  }
 
-    notifyListeners(); // Update UI
-
-    // Save the final state to SharedPreferences
-    final storageBox = GetStorage();
-    await storageBox.write(AppKeys.keyIsPermissionEnabled, _isNotificationEnable);
-  }*/
-
-  // --- In SettingsViewmodel ---
   Future<void> deleteAccount(BuildContext context) async {
-    // 1. Show confirmation dialog
-    bool confirmDelete =
-        await showDialog(
+    final confirmDelete =
+        await showDialog<bool>(
           context: context,
           builder:
-              (BuildContext dialogContext) => AlertDialog(
-                title: const Text('Confirm Deletion'),
+              (dialogContext) => AlertDialog(
+                title: const Text('Delete Account?'),
                 content: const Text(
-                  'Are you sure you want to delete your account? This action cannot be undone.',
+                  'Are you sure you want to permanently delete your account? All inventory data, notifications, and store settings will be irrecoverably lost.',
                 ),
                 actions: <Widget>[
                   TextButton(
                     child: const Text('Cancel'),
-                    onPressed: () {
-                      Navigator.of(
-                        dialogContext,
-                      ).pop(false); // Dismiss dialog, return false
-                    },
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
                   ),
                   TextButton(
-                    child: const Text('Delete'),
-                    onPressed: () {
-                      Navigator.of(
-                        dialogContext,
-                      ).pop(true); // Dismiss dialog, return true
-                    },
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    child: const Text('Delete Permanently'),
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
                   ),
                 ],
               ),
         ) ??
-        false; // Default to false if dialog is dismissed without selection
+        false;
 
-    if (!confirmDelete) {
-      return; // User cancelled
+    if (!confirmDelete || !context.mounted) {
+      return;
     }
 
-    // 2. Perform deletion logic
-    try {
-      // --- Firebase Example ---
-      // Assuming you use Firebase Auth and Firestore
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        // User not logged in, maybe navigate to login or show error
-        throw Exception("User not logged in.");
-      }
-
-      // Delete user data from Firestore (e.g., user profile, product data)
-      // You'll need to know where user-specific data is stored.
-      // Example: await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
-      // Example: await FirebaseFirestore.instance.collection('products').where('userId', isEqualTo: user.uid).get().then((snapshot) => snapshot.docs.forEach((doc) => doc.reference.delete()));
-      // Be thorough here! Delete all associated data.
-
-      // Delete the user account itself
-      await user.delete();
-
-      // 3. Navigate to login screen or show success message
-      // Navigator.of(context).pushReplacementNamed(AppRoutes.login); // Example navigation
+    final user = auth.currentUser;
+    if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account deleted successfully. Please log in again.'),
-        ),
+        const SnackBar(content: Text("No authenticated user found.")),
       );
-      // You might need to navigate programmatically after the current build method finishes
-      // or use a Navigator key. For simplicity, showing SnackBar is shown here.
-    } catch (e) {
-      // Handle errors (e.g., re-authentication required for deletion, network issues)
-      print("Error deleting account: $e");
-      String errorMessage = "Failed to delete account. Please try again.";
-      if (e is FirebaseAuthException) {
-        if (e.code == 'requires-recent-login') {
-          errorMessage = "Please re-login to delete your account.";
-          // You might want to navigate to the login screen here
-        } else {
-          errorMessage = e.message ?? errorMessage;
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _executeAccountDeletion(context, user);
+    } on FirebaseAuthException catch (e) {
+      log("FirebaseAuthException during deletion: ${e.code}");
+      if (e.code == 'requires-recent-login') {
+        _isLoading = false;
+        notifyListeners();
+
+        // Prompt for password re-authentication
+        final reauthSuccess = await _promptPasswordReauth(context, user);
+        if (reauthSuccess && context.mounted) {
+          _isLoading = true;
+          notifyListeners();
+          try {
+            await _executeAccountDeletion(context, user);
+          } catch (retryError) {
+            log("Error retrying deletion: $retryError");
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to delete account: $retryError'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.message ?? 'Failed to delete account.'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
-      // Re-throw or handle as needed
-      throw Exception(errorMessage);
+    } catch (e) {
+      log("Error during account deletion: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete account: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  // --- In SettingsPage.dart ---
-  //   ListTile(
-  //   leading: const Icon(Icons.delete_forever_outlined),
-  //   title: const Text('Delete My Account'),
-  //   onTap: () async {
-  //   // Call the ViewModel method
-  //   // Make sure the ViewModel is accessible via Provider or similar
-  //   final settingsProvider = Provider.of<SettingsViewmodel>(context, listen: false);
-  //   try {
-  //   await settingsProvider.deleteAccount(context);
-  //   // If deleteAccount navigated, this part might not be reached.
-  //   // If it only shows SnackBar, you might want to navigate here after success.
-  //   } catch (e) {
-  //   // Error is likely already shown by SnackBar in ViewModel, but you could add more UI feedback here.
-  //   }
-  //   },
-  //   ),
+  Future<void> _executeAccountDeletion(BuildContext context, User user) async {
+    final uid = user.uid;
+
+    // 1. Cascade delete products
+    final productsSnapshot =
+        await firestore
+            .collection('products')
+            .where('userId', isEqualTo: uid)
+            .get();
+    final batch = firestore.batch();
+    for (var doc in productsSnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // 2. Cascade delete notifications
+    final notificationsSnapshot =
+        await firestore
+            .collection('notifications')
+            .where('recipientId', isEqualTo: uid)
+            .get();
+    for (var doc in notificationsSnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // 3. Delete user profile doc
+    final userDocRef = firestore.collection('users').doc(uid);
+    batch.delete(userDocRef);
+
+    await batch.commit();
+
+    // 4. Delete Auth user
+    await user.delete();
+
+    // 5. Clear local storage
+    final storage = GetStorage();
+    await storage.erase();
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account deleted successfully.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+    }
+  }
+
+  Future<bool> _promptPasswordReauth(BuildContext context, User user) async {
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => _ReauthPasswordDialog(user: user),
+    );
+    return result ?? false;
+  }
+}
+
+class _ReauthPasswordDialog extends StatefulWidget {
+  final User user;
+  const _ReauthPasswordDialog({required this.user});
+
+  @override
+  State<_ReauthPasswordDialog> createState() => _ReauthPasswordDialogState();
+}
+
+class _ReauthPasswordDialogState extends State<_ReauthPasswordDialog> {
+  final _passwordController = TextEditingController();
+  bool _isSubmitting = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Confirm Password'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'For security, please enter your password to proceed with deleting your account.',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: const OutlineInputBorder(),
+                errorText: _errorMessage,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: const Text('Cancel'),
+          onPressed: () => Navigator.of(context).pop(false),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: _isSubmitting ? null : _verifyAndProceed,
+          child:
+              _isSubmitting
+                  ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                  : const Text('Verify & Delete'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _verifyAndProceed() async {
+    final password = _passwordController.text.trim();
+    if (password.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your password';
+      });
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final email = widget.user.email;
+      if (email != null && email.isNotEmpty) {
+        final credential = EmailAuthProvider.credential(
+          email: email,
+          password: password,
+        );
+        await widget.user.reauthenticateWithCredential(credential);
+        if (mounted) {
+          Navigator.of(context).pop(true);
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+            _errorMessage = 'No email associated with user.';
+          });
+        }
+      }
+    } catch (reauthErr) {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+          _errorMessage =
+              reauthErr is FirebaseAuthException
+                  ? (reauthErr.message ?? 'Authentication failed')
+                  : 'Incorrect password';
+        });
+      }
+    }
+  }
 }
 
 int? _extractIdFromUri(String uri) {

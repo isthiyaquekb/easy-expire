@@ -1,4 +1,3 @@
-import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:easyexpire/feature/profile/viewmodel/profile_viewmodel.dart';
 import 'package:easyexpire/widgets/common_app_bar.dart';
 import 'package:easyexpire/widgets/common_button.dart';
@@ -10,8 +9,11 @@ class EditProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CommonAppBar(title: 'Edit Profile', isBack: true),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -23,30 +25,34 @@ class EditProfilePage extends StatelessWidget {
                   children: [
                     TextFormField(
                       controller: provider.storeController,
-                      style: const TextStyle(
-                        color: Colors.black,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                       ),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 0,
+                          horizontal: 12,
+                          vertical: 12,
                         ),
                         labelText: 'Store name',
                         hintText: 'Enter your store name',
-                        hintStyle: const TextStyle(
-                          color: Colors.black54,
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.grey[500] : Colors.black54,
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.grey),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.grey[700]! : Colors.grey,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.green),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -62,33 +68,37 @@ class EditProfilePage extends StatelessWidget {
                             value.toString().trim(),
                           ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: provider.addressController,
-                      style: const TextStyle(
-                        color: Colors.black,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                       ),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 0,
+                          horizontal: 12,
+                          vertical: 12,
                         ),
                         labelText: 'Store address',
                         hintText: 'Enter your store address',
-                        hintStyle: const TextStyle(
-                          color: Colors.black54,
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.grey[500] : Colors.black54,
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.grey),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.grey[700]! : Colors.grey,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.green),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -104,33 +114,37 @@ class EditProfilePage extends StatelessWidget {
                             value.toString().trim(),
                           ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: provider.phoneController,
-                      style: const TextStyle(
-                        color: Colors.black,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                       ),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 0,
+                          horizontal: 12,
+                          vertical: 12,
                         ),
                         labelText: 'Phone',
                         hintText: 'Enter your phone',
-                        hintStyle: const TextStyle(
-                          color: Colors.black54,
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.grey[500] : Colors.black54,
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.grey),
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.grey[700]! : Colors.grey,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.green),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -145,57 +159,48 @@ class EditProfilePage extends StatelessWidget {
                           (value) =>
                               provider.phoneValidator(value.toString().trim()),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: provider.emailController,
-                      style: const TextStyle(
-                        color: Colors.black,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                       ),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 0,
+                          horizontal: 12,
+                          vertical: 12,
                         ),
                         enabled: false,
                         hintText: 'Enter email',
                         labelText: 'email',
-                        hintStyle: const TextStyle(
-                          color: Colors.black54,
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.grey[500] : Colors.black54,
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.grey),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.green),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.red),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.red),
-                        ),
                         disabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Colors.grey),
+                          borderSide: BorderSide(
+                            color:
+                                isDark
+                                    ? Colors.grey[800]!
+                                    : Colors.grey.shade300,
+                          ),
                         ),
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     CommonButton(
                       title: 'Update',
                       tap: () {
                         provider.sessionProfile(context);
                       },
                     ),
-                    SizedBox(height: 40),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),

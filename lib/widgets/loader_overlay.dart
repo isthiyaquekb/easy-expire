@@ -41,7 +41,7 @@ class _LoaderOverlayState extends State<LoaderOverlay>
           // backdrop-blur-md
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -66,7 +66,7 @@ class _LoaderOverlayState extends State<LoaderOverlay>
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: cs.primary.withOpacity(0.2),
+                                      color: cs.primary.withValues(alpha: 0.2),
                                       width: 2,
                                     ),
                                   ),
@@ -82,12 +82,12 @@ class _LoaderOverlayState extends State<LoaderOverlay>
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(50),
                           border: Border.all(
-                            color: cs.outlineVariant.withOpacity(0.3),
+                            color: cs.outlineVariant.withValues(alpha: 0.3),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
+                              color: Colors.black.withValues(alpha: 0.06),
                               blurRadius: 4,
                             ),
                           ],

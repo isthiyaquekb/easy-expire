@@ -15,14 +15,19 @@ enum NotificationType {
 
 // Function to infer NotificationType from title (ideally, this would come from the model)
 NotificationType _getNotificationType(String title) {
-  if (title.toLowerCase().contains('expiry alert'))
+  final lower = title.toLowerCase();
+  if (lower.contains('expiry alert')) {
     return NotificationType.expiryAlert;
-  if (title.toLowerCase().contains('restock suggestion'))
+  }
+  if (lower.contains('restock suggestion')) {
     return NotificationType.restockSuggestion;
-  if (title.toLowerCase().contains('system update'))
+  }
+  if (lower.contains('system update')) {
     return NotificationType.systemUpdate;
-  if (title.toLowerCase().contains('delivery confirmed'))
+  }
+  if (lower.contains('delivery confirmed')) {
     return NotificationType.deliveryConfirmed;
+  }
   return NotificationType.general;
 }
 
@@ -80,14 +85,20 @@ class NotificationItemCard extends StatelessWidget {
         break;
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.symmetric(
         vertical: 6.0,
       ), // Spacing between cards
       decoration: BoxDecoration(
-        color: AppColors.notificationCardBackground,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderColor, width: 1),
+        border: Border.all(
+          color: isDark ? Colors.white12 : AppColors.borderColor,
+          width: 1,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,12 +129,17 @@ class NotificationItemCard extends StatelessWidget {
                         height: 40,
                         decoration: BoxDecoration(
                           color:
-                              AppColors.inputFillColor, // Light grey background
+                              isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : AppColors.inputFillColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           icon,
-                          color: AppColors.bodyTextColor,
+                          color:
+                              isDark
+                                  ? Colors.grey[300]
+                                  : AppColors.bodyTextColor,
                           size: 24,
                         ),
                       ),
@@ -134,10 +150,8 @@ class NotificationItemCard extends StatelessWidget {
                           children: [
                             Text(
                               title,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleMedium?.copyWith(
-                                color: AppColors.headlineTextColor,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
@@ -147,10 +161,11 @@ class NotificationItemCard extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               body,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.bodyTextColor,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color:
+                                    isDark
+                                        ? Colors.grey[400]
+                                        : AppColors.bodyTextColor,
                                 fontSize: 13,
                               ),
                               maxLines: 3,
@@ -163,8 +178,11 @@ class NotificationItemCard extends StatelessWidget {
                       // Timestamp
                       Text(
                         DateFormat('h:mm a').format(timestamp),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.labelTextColor,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color:
+                              isDark
+                                  ? Colors.grey[500]
+                                  : AppColors.labelTextColor,
                           fontSize: 12,
                         ),
                       ),
@@ -180,10 +198,8 @@ class NotificationItemCard extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: onReviewBatch,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  AppColors.notificationActionPrimaryBg,
-                              foregroundColor:
-                                  AppColors.notificationActionPrimaryText,
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -205,13 +221,18 @@ class NotificationItemCard extends StatelessWidget {
                           child: OutlinedButton(
                             onPressed: onDismiss,
                             style: OutlinedButton.styleFrom(
-                              backgroundColor:
-                                  AppColors.notificationCardBackground,
+                              backgroundColor: theme.colorScheme.surface,
                               foregroundColor:
-                                  AppColors.notificationActionSecondaryText,
-                              side: const BorderSide(
+                                  isDark
+                                      ? Colors.grey[300]
+                                      : AppColors
+                                          .notificationActionSecondaryText,
+                              side: BorderSide(
                                 color:
-                                    AppColors.notificationActionSecondaryBorder,
+                                    isDark
+                                        ? Colors.white24
+                                        : AppColors
+                                            .notificationActionSecondaryBorder,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),

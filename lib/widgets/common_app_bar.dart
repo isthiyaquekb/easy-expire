@@ -1,4 +1,3 @@
-import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {

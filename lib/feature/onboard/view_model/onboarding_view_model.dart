@@ -14,18 +14,33 @@ class OnboardingViewModel extends ChangeNotifier {
 
   goToNext(BuildContext context) {
     if (isLastPage) {
-      if (storageBox.read(AppKeys.keyIsLoggedIn)) {
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
-      } else {
-        Navigator.pushReplacementNamed(context, AppRoutes.login);
-      }
       storageBox.write(AppKeys.keyIsOnboardingStarted, true);
+      final isLoggedIn = storageBox.read(AppKeys.keyIsLoggedIn) == true;
+      Navigator.pushReplacementNamed(
+        context,
+        isLoggedIn ? AppRoutes.dashboard : AppRoutes.login,
+      );
     } else {
-      storageBox.write(AppKeys.keyIsOnboardingStarted, false);
       pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeIn,
       );
+    }
+    notifyListeners();
+  }
+
+  void skipOnboarding(BuildContext context) {
+    storageBox.write(AppKeys.keyIsOnboardingStarted, true);
+    final isLoggedIn = storageBox.read(AppKeys.keyIsLoggedIn) == true;
+    Navigator.of(
+      context,
+    ).pushReplacementNamed(isLoggedIn ? AppRoutes.dashboard : AppRoutes.login);
+  }
+
+  void reset() {
+    selectedPageIndex = 0;
+    if (pageController.hasClients) {
+      pageController.jumpToPage(0);
     }
     notifyListeners();
   }

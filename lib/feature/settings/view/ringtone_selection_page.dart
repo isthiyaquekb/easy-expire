@@ -8,54 +8,110 @@ class RingtoneSelectionPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonAppBar(title: 'Ringtones', isBack: true),
-      body: Consumer<SettingsViewmodel>(
-        builder:
-            (context, provider, child) => Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ListView.builder(
-                itemCount: provider.ringtoneList.length,
-                itemBuilder:
-                    (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade200,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text("${index + 1}"),
-                              Text(provider.ringtoneList[index].title),
-                              InkWell(
-                                onTap: () {
-                                  /*FlutterRingtonePlayer().play(
-                          // android: AndroidSounds.notification,
-                          // ios: IosSound(1023),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-                          fromFile: provider.ringtoneList[index].path,
-                          volume: 1.0,
-                          looping: false,
-                          asAlarm: false,
-                        );*/
-                                  provider.playSound(
-                                    provider.ringtoneList[index].path,
-                                  );
-                                },
-                                child: Icon(Icons.play_arrow),
-                              ),
-                            ],
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: const CommonAppBar(title: 'Alert Tones', isBack: true),
+      body: Consumer<SettingsViewmodel>(
+        builder: (context, provider, child) {
+          if (provider.ringtoneList.isEmpty) {
+            return Center(
+              child: Text(
+                'No ringtones available',
+                style: TextStyle(color: theme.colorScheme.onSurface),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: provider.ringtoneList.length,
+            itemBuilder: (context, index) {
+              final tone = provider.ringtoneList[index];
+              final isSelected = tone.title == provider.selectedRingtone;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: InkWell(
+                  onTap: () {
+                    provider.selectRingtone(tone);
+                    provider.playSound(tone.path);
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected
+                              ? theme.colorScheme.primary.withValues(
+                                alpha: isDark ? 0.2 : 0.08,
+                              )
+                              : theme.colorScheme.surface,
+                      border: Border.all(
+                        color:
+                            isSelected
+                                ? theme.colorScheme.primary
+                                : (isDark
+                                    ? Colors.grey.shade800
+                                    : Colors.grey.shade300),
+                        width: isSelected ? 1.5 : 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 14.0,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isSelected
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_off,
+                          color:
+                              isSelected
+                                  ? theme.colorScheme.primary
+                                  : (isDark
+                                      ? Colors.grey[500]
+                                      : Colors.grey[400]),
+                          size: 22,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            tone.title,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight:
+                                  isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
-                      ),
+                        InkWell(
+                          onTap: () {
+                            provider.playSound(tone.path);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Icon(
+                              Icons.play_circle_fill_rounded,
+                              color: theme.colorScheme.primary,
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-              ),
-            ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

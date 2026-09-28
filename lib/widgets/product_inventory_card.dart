@@ -65,16 +65,16 @@ class ProductInventoryCard extends StatelessWidget {
     final double progress =
         maxQuantity > 0 ? (quantity / maxQuantity).clamp(0.0, 1.0) : 0.0;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12), // Space between cards
       padding: const EdgeInsets.all(20.0), // Matches 'p-5'
       decoration: BoxDecoration(
-        color:
-            Theme.of(
-              context,
-            ).colorScheme.surface, // bg-surface-container-lowest
+        color: theme.colorScheme.surface, // bg-surface-container-lowest
         border: Border.all(
-          color: AppColors.borderColor,
+          color: isDark ? Colors.white12 : AppColors.borderColor,
         ), // border-outline-variant
         borderRadius: BorderRadius.circular(
           12.0,
@@ -94,10 +94,8 @@ class ProductInventoryCard extends StatelessWidget {
                   children: [
                     Text(
                       productName,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        color: AppColors.headlineTextColor, // text-headline-md
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: theme.colorScheme.onSurface, // text-headline-md
                         fontWeight: FontWeight.bold,
                         fontSize: 18, // Adjust as needed for 'headline-md'
                       ),
@@ -107,10 +105,11 @@ class ProductInventoryCard extends StatelessWidget {
                     const SizedBox(height: 4), // mt-1
                     Text(
                       "Batch ID: $batchId",
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color:
-                            AppColors
-                                .labelTextColor, // text-on-surface-variant text-body-sm
+                            isDark
+                                ? Colors.grey[400]
+                                : AppColors.labelTextColor,
                         fontSize: 12,
                       ),
                     ),
@@ -143,7 +142,7 @@ class ProductInventoryCard extends StatelessWidget {
                     Text(
                       badgeText
                           .toUpperCase(), // text-label-caps font-label-caps
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      style: theme.textTheme.labelSmall?.copyWith(
                         color: badgeTextColor,
                         fontWeight: FontWeight.w900, // Very bold for caps
                         fontSize: 10,
@@ -168,9 +167,12 @@ class ProductInventoryCard extends StatelessWidget {
                 children: [
                   Text(
                     "Quantity".toUpperCase(), // text-label-caps font-label-caps
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    style: theme.textTheme.labelSmall?.copyWith(
                       color:
-                          AppColors.labelTextColor, // text-on-surface-variant
+                          isDark
+                              ? Colors.grey[400]
+                              : AppColors
+                                  .labelTextColor, // text-on-surface-variant
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.8,
@@ -183,11 +185,9 @@ class ProductInventoryCard extends StatelessWidget {
                     children: [
                       Text(
                         quantity.toString(),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.headlineLarge?.copyWith(
+                        style: theme.textTheme.headlineLarge?.copyWith(
                           color:
-                              AppColors.headlineTextColor, // text-headline-lg
+                              theme.colorScheme.onSurface, // text-headline-lg
                           fontWeight: FontWeight.bold,
                           fontSize: 28, // Adjust as needed for 'headline-lg'
                         ),
@@ -195,10 +195,11 @@ class ProductInventoryCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         "units",
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color:
-                              AppColors
-                                  .labelTextColor, // text-body-sm font-normal text-on-surface-variant
+                              isDark
+                                  ? Colors.grey[400]
+                                  : AppColors.labelTextColor,
                           fontSize: 12,
                         ),
                       ),
@@ -225,8 +226,10 @@ class ProductInventoryCard extends StatelessWidget {
                         child: Container(
                           height: 4.0, // h-1 (assuming 1 unit = 4px)
                           color:
-                              AppColors
-                                  .progressBarTrack, // bg-surface-container-high
+                              isDark
+                                  ? Colors.white24
+                                  : AppColors
+                                      .progressBarTrack, // bg-surface-container-high
                           child: Align(
                             alignment: Alignment.centerLeft,
                             child: FractionallySizedBox(
