@@ -225,9 +225,7 @@ class AuthViewModel extends ChangeNotifier {
 
   void togglePasswordVisibility() {
     _isPasswordVisible = !_isPasswordVisible;
-    print(
-      "AuthViewModel togglePasswordVisibility called ${_isPasswordVisible}",
-    );
+    print("AuthViewModel togglePasswordVisibility called $_isPasswordVisible");
     notifyListeners();
   }
 

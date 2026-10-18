@@ -1,1 +1,1 @@
-{"isStarted":true}
+{"isLoggedIn":true,"isStarted":true,"leadDays":7,"selectedRingtone":"Chime Bell"}

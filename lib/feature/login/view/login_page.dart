@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:easyexpire/core/constant/app_assets.dart';
 import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:easyexpire/core/constant/app_routes.dart';
@@ -10,7 +8,6 @@ import 'package:easyexpire/widgets/common_app_text.dart';
 import 'package:easyexpire/widgets/common_button.dart';
 import 'package:easyexpire/widgets/loader_overlay.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatelessWidget {

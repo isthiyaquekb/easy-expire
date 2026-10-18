@@ -304,6 +304,7 @@ class _NotificationPageState extends State<NotificationPage> {
                           style: Theme.of(
                             context,
                           ).textTheme.labelLarge?.copyWith(
+                            color: AppColors.primary,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -323,6 +324,7 @@ class _NotificationPageState extends State<NotificationPage> {
                       child: Text(
                         dateGroup,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: AppColors.headlineTextColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
@@ -355,9 +357,9 @@ class _NotificationPageState extends State<NotificationPage> {
                           ); // Or a softer "dismiss"
                         },
                       );
-                    }).toList(),
+                    }),
                   ];
-                }).toList(),
+                }),
               ],
             ),
           );

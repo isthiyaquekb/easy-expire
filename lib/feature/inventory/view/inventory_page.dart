@@ -514,16 +514,16 @@ class InventoryPage extends StatelessWidget {
                       itemCount: viewModel.productFilteredList.length,
                       itemBuilder: (context, index) {
                         final product = viewModel.productFilteredList[index];
-                        final isExpiredOrToday = product.daysLeft! <= 0;
+                        final isExpiredOrToday = product.daysLeft <= 0;
                         final int maxQuantity =
-                            product.quantity != null && product.quantity! > 0
-                                ? (product.quantity! +
+                            product.quantity > 0
+                                ? (product.quantity +
                                     50) // Example: current quantity + 50, or some other logic
                                 : 100;
                         final daysLeftText =
-                            product.daysLeft! > 0
+                            product.daysLeft > 0
                                 ? "${product.daysLeft} days left"
-                                : (product.daysLeft! == 0
+                                : (product.daysLeft == 0
                                     ? "0 days left"
                                     : "${product.daysLeft} days left");
 
