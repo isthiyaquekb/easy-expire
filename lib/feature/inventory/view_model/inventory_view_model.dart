@@ -1,3 +1,6 @@
+import 'dart:developer';
+import 'package:easyexpire/core/services/product_notification_coordinator.dart';
+import 'package:easyexpire/core/utils/expiry_date_calculator.dart';
 import 'package:easyexpire/core/utils/ocr_parser.dart';
 import 'package:easyexpire/feature/dashboard/viewmodel/dashboard_provider.dart';
 import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
@@ -186,30 +189,49 @@ class InventoryViewModel extends ChangeNotifier {
       await _firebaseServices.fireStore
           .collection(_firebaseServices.productCollection)
           .add(data.toMap())
-          .then((value) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Product added successfully')),
+          .then((value) async {
+            final productWithId = InventoryModel(
+              id: value.id,
+              productName: data.productName,
+              userId: data.userId,
+              expiryDate: data.expiryDate,
+              batchNo: data.batchNo,
+              quantity: data.quantity,
+              daysLeft: data.daysLeft,
             );
+            try {
+              await ProductNotificationCoordinator()
+                  .scheduleProductNotifications(productWithId);
+            } catch (notifErr) {
+              log(
+                "Error scheduling notifications for added product: $notifErr",
+              );
+            }
+
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Product added successfully')),
+              );
+            }
             resetFields();
-            Provider.of<HomeViewModel>(
-              context,
-              listen: false,
-            ).getAllProduct(userId);
-            Provider.of<DashboardProvider>(
-              context,
-              listen: false,
-            ).changeBottomNavIndex(0);
+            if (context.mounted) {
+              Provider.of<HomeViewModel>(
+                context,
+                listen: false,
+              ).getAllProduct(userId);
+              Provider.of<DashboardProvider>(
+                context,
+                listen: false,
+              ).changeBottomNavIndex(0);
+            }
           });
     } catch (e) {
-      print('Error adding product: $e');
+      log('Error adding product: $e');
     }
   }
 
   void calculateDaysRemaining(DateTime from, DateTime to) {
-    var fromDate = DateTime(from.year, from.month, from.day);
-    var toDate = DateTime(to.year, to.month, to.day);
-    dayLeft = (fromDate.difference(toDate).inHours / 24).round();
-
+    dayLeft = calculateCalendarDaysRemaining(from, to);
     print("Calculated DATE IS $dayLeft");
   }
 

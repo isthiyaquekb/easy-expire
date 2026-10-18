@@ -6,6 +6,8 @@ import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/core/services/ringtone_services.dart';
 import 'package:easyexpire/feature/settings/model/ringtone_model.dart';
 import 'package:easyexpire/utils/Permissions/app_permissions.dart';
+import 'package:easyexpire/core/services/local_notification_services.dart';
+import 'package:easyexpire/core/services/notification_deduplication_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
@@ -284,7 +286,15 @@ class SettingsViewmodel extends ChangeNotifier {
     // 4. Delete Auth user
     await user.delete();
 
-    // 5. Clear local storage
+    // 5. Cancel local notifications and clean up deduplication
+    try {
+      await LocalNotificationServices.cancelAllNotifications();
+      await NotificationDeduplicationService().clearAll();
+    } catch (notifErr) {
+      log("Error clearing notifications on account deletion: $notifErr");
+    }
+
+    // 6. Clear local storage
     final storage = GetStorage();
     await storage.erase();
 

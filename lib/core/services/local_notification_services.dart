@@ -1,7 +1,9 @@
+import 'dart:developer';
 import 'package:easyexpire/core/constant/app_string.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -19,6 +21,13 @@ class LocalNotificationServices {
   // INITIALIZATION
   static Future init() async {
     tz.initializeTimeZones();
+    try {
+      final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(currentTimeZone));
+    } catch (e) {
+      log("Could not configure device local timezone: $e");
+    }
+
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -49,12 +58,21 @@ class LocalNotificationServices {
     );
   }
 
+  /// Darwin notification details for iOS alert, sound, and badge presentation
+  static const DarwinNotificationDetails darwinNotificationDetails =
+      DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
   ///SIMPLE NOTIFICATION
   static Future showSimpleNotification(
     String title,
     String body,
-    String payload,
-  ) async {
+    String payload, {
+    int id = 0,
+  }) async {
     const AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
           AppString.notificationChannelId,
@@ -65,9 +83,11 @@ class LocalNotificationServices {
         );
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
+      iOS: darwinNotificationDetails,
+      macOS: darwinNotificationDetails,
     );
     await flutterLocalNotificationsPlugin.show(
-      0,
+      id,
       title,
       body,
       notificationDetails,
@@ -79,8 +99,9 @@ class LocalNotificationServices {
   static Future showRepeatedNotification(
     String title,
     String body,
-    String payload,
-  ) async {
+    String payload, {
+    int id = 0,
+  }) async {
     const AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
           AppString.notificationChannelId,
@@ -93,9 +114,10 @@ class LocalNotificationServices {
         );
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
+      iOS: darwinNotificationDetails,
     );
     await flutterLocalNotificationsPlugin.periodicallyShow(
-      0,
+      id,
       title,
       body,
       RepeatInterval.everyMinute,
@@ -123,6 +145,7 @@ class LocalNotificationServices {
         );
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
+      iOS: darwinNotificationDetails,
     );
     await flutterLocalNotificationsPlugin.periodicallyShow(
       id,
@@ -153,6 +176,7 @@ class LocalNotificationServices {
         );
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
+      iOS: darwinNotificationDetails,
     );
     await flutterLocalNotificationsPlugin.periodicallyShow(
       id,
@@ -171,29 +195,17 @@ class LocalNotificationServices {
     int minutes,
     String title,
     String body,
-    String payload,
-  ) async {
-    const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails(
-          AppString.notificationChannelId,
-          AppString.notificationChannelName,
-          importance: Importance.max,
-          priority: Priority.high,
-          playSound: true,
-          sound: RawResourceAndroidNotificationSound("f1_notification"),
-          ticker: 'ticker',
-        );
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidNotificationDetails,
+    String payload, {
+    int id = 0,
+  }) async {
+    final scheduledDate = checkForTime(hour, minutes);
+    await scheduleProductNotification(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: scheduledDate,
+      payload: payload,
     );
-    /* await flutterLocalNotificationsPlugin.zonedSchedule(
-        0, title, body,
-        checkForTime(hour,minutes),
-        notificationDetails,
-        uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
-        payload: payload);*/
   }
 
   void onDidReceiveLocalNotification(
@@ -283,5 +295,90 @@ class LocalNotificationServices {
       scheduleTime = scheduleTime.add(const Duration(days: 5));
     }
     return scheduleTime;
+  }
+
+  /// Cancels a specific scheduled or active notification by [id].
+  static Future<void> cancelNotification(int id) async {
+    try {
+      await flutterLocalNotificationsPlugin.cancel(id);
+      log("Cancelled notification ID: $id");
+    } catch (e) {
+      log("Error cancelling notification ID $id: $e");
+    }
+  }
+
+  /// Cancels all pending and displayed notifications.
+  static Future<void> cancelAllNotifications() async {
+    try {
+      await flutterLocalNotificationsPlugin.cancelAll();
+      log("Cancelled all notifications.");
+    } catch (e) {
+      log("Error cancelling all notifications: $e");
+    }
+  }
+
+  /// Retrieves list of all pending scheduled notification requests.
+  static Future<List<PendingNotificationRequest>>
+  getPendingNotifications() async {
+    try {
+      return await flutterLocalNotificationsPlugin
+          .pendingNotificationRequests();
+    } catch (e) {
+      log("Error retrieving pending notifications: $e");
+      return [];
+    }
+  }
+
+  /// Schedules a timezone-aware notification for a product at [scheduledDate].
+  static Future<bool> scheduleProductNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    String? payload,
+  }) async {
+    try {
+      final tz.TZDateTime tzScheduledDate = tz.TZDateTime.from(
+        scheduledDate,
+        tz.local,
+      );
+
+      // Do not attempt to schedule in the past
+      if (tzScheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
+        log("Cannot schedule notification $id in the past: $tzScheduledDate");
+        return false;
+      }
+
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+            AppString.notificationChannelId,
+            AppString.notificationChannelName,
+            importance: Importance.max,
+            priority: Priority.high,
+            playSound: true,
+            sound: RawResourceAndroidNotificationSound("f1_notification"),
+          );
+
+      const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: darwinNotificationDetails,
+        macOS: darwinNotificationDetails,
+      );
+
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tzScheduledDate,
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        payload: payload,
+      );
+      log("Successfully scheduled notification $id for $tzScheduledDate");
+      return true;
+    } catch (e) {
+      log("Error scheduling notification $id: $e");
+      return false;
+    }
   }
 }

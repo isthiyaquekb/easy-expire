@@ -3,12 +3,13 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easyexpire/feature/inventory/model/inventory_model.dart';
 import 'package:easyexpire/feature/login/model/user_model.dart';
-import 'package:easyexpire/utils/Formatter/app_date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 
+import 'package:easyexpire/core/services/product_notification_coordinator.dart';
+import 'package:easyexpire/core/utils/expiry_date_calculator.dart';
 import '../../../core/services/firebase_services.dart';
 import 'package:easyexpire/core/services/background_service.dart';
 
@@ -112,25 +113,19 @@ class HomeViewModel extends ChangeNotifier {
     } else if (days == 0) {
       productFilteredList =
           productList.where((product) {
-            var day = AppDateFormatter.dateTimeFromFirebase(product.expiryDate);
-            // Parse 'dd-MM-yyyy' format correctly
-            DateTime expiryDate = DateFormat("dd-MM-yyyy").parse(day);
-
-            log("DAYS==0:$days");
-            int daysLeft = expiryDate.difference(today).inDays;
-            log("DAYS LEFT:$daysLeft");
+            final daysLeft = calculateCalendarDaysRemaining(
+              product.expiryDate.toDate(),
+              today,
+            );
             return daysLeft <= days;
           }).toList();
     } else {
       productFilteredList =
           productList.where((product) {
-            var day = AppDateFormatter.dateTimeFromFirebase(product.expiryDate);
-            // Parse 'dd-MM-yyyy' format correctly
-            DateTime expiryDate = DateFormat("dd-MM-yyyy").parse(day);
-
-            log("DAYS:$days");
-            int daysLeft = expiryDate.difference(today).inDays;
-            log("DAYS LEFT:$daysLeft");
+            final daysLeft = calculateCalendarDaysRemaining(
+              product.expiryDate.toDate(),
+              today,
+            );
             return daysLeft > 0 && daysLeft <= days;
           }).toList();
     }
@@ -158,13 +153,18 @@ class HomeViewModel extends ChangeNotifier {
       productList =
           snapshot.docs.map((doc) {
             final data = doc.data();
-            return InventoryModel.fromMap(data);
+            return InventoryModel.fromMap(data, docId: doc.id);
           }).toList();
 
       // Calculate days left and filter based on selected filter
       setSelectedFilter(null);
       _calculateDaysLeftAndFilter();
       setupNotification();
+      try {
+        await ProductNotificationCoordinator().reconcileProducts(productList);
+      } catch (reconcileErr) {
+        log('Error reconciling product notifications: $reconcileErr');
+      }
       notifyListeners();
     } catch (e) {
       log('Error fetching products: $e');
@@ -173,12 +173,12 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void _calculateDaysLeftAndFilter() {
+    final now = DateTime.now();
     for (var product in productList) {
-      final now = DateTime.now();
-      var day = AppDateFormatter.dateTimeFromFirebase(product.expiryDate);
-      // Parse 'dd-MM-yyyy' format correctly
-      DateTime expiryDate = DateFormat("dd-MM-yyyy").parse(day);
-      final difference = expiryDate.difference(now).inDays;
+      final difference = calculateCalendarDaysRemaining(
+        product.expiryDate.toDate(),
+        now,
+      );
       product.daysLeft = difference;
     }
 
@@ -202,19 +202,7 @@ class HomeViewModel extends ChangeNotifier {
   // }
 
   void calculateDaysRemaining(DateTime from, DateTime to, InventoryModel data) {
-    var fromDate = DateTime(from.year, from.month, from.day);
-    var toDate = DateTime(to.year, to.month, to.day);
-    dayLeft = (fromDate.difference(toDate).inHours / 24).round();
-    // var inventoryData=InventoryModel(barcode: data.barcode,
-    //     productName: data.productName,
-    //     expiryDate: data.expiryDate,
-    //     batchNo: data.batchNo,
-    //     quantity: data.quantity,
-    //     daysLeft: dayLeft);
-    // productList.add(inventoryData);
-    // var myDateTime=DateFormat("HH:mm").format(DateTime.parse(data.expiryDate
-    // ));
-    // LocalNotificationServices.showScheduleNotification(int.parse(myDateTime.split(":")[0]), int.parse(myDateTime.split(":")[1]), data.productName, data.expiryDate, data.daysLeft.toString());
+    dayLeft = calculateCalendarDaysRemaining(from, to);
   }
 
   Future<void> signOut() async {

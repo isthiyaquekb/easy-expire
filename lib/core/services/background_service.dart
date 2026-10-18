@@ -2,10 +2,11 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
 import 'package:easyexpire/feature/inventory/model/inventory_model.dart';
-import 'package:easyexpire/utils/Formatter/app_date_formatter.dart';
+import 'package:easyexpire/core/services/product_notification_coordinator.dart';
+import 'package:easyexpire/core/utils/expiry_date_calculator.dart';
 import 'package:easyexpire/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:intl/intl.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:workmanager/workmanager.dart';
 
 @pragma('vm:entry-point')
@@ -18,7 +19,8 @@ void callbackDispatcher() {
         options: DefaultFirebaseOptions.currentPlatform,
       );
 
-      // 2. Initialize Notifications
+      // 2. Initialize Storage and Notifications
+      await GetStorage.init();
       await LocalNotificationServices.init();
 
       // Ensure we have a user ID passed in inputData
@@ -43,45 +45,17 @@ void callbackDispatcher() {
 
       final productList =
           snapshot.docs.map((doc) {
-            return InventoryModel.fromMap(doc.data());
+            return InventoryModel.fromMap(doc.data(), docId: doc.id);
           }).toList();
 
-      // 4. Check expiry dates and trigger notifications + firestore logging
-      for (int i = 0; i < productList.length; i++) {
-        final product = productList[i];
-        final expiryDate = product.expiryDate.toDate();
-        final now = DateTime.now();
+      // 4. Check expiry dates and trigger notifications via coordinator
+      final coordinator = ProductNotificationCoordinator();
+      final sentCount = await coordinator.processPeriodicBackgroundCheck(
+        productList,
+        logToFirestore: _logNotificationToFirestore,
+      );
 
-        final daysLeft = expiryDate.difference(now).inDays;
-
-        if (daysLeft <= 5 && daysLeft > 0) {
-          // Log daily
-          await LocalNotificationServices.showSimpleNotification(
-            'Product Expiry Alert',
-            '${product.productName} will expire in $daysLeft days!',
-            product.userId,
-          );
-          await _logNotificationToFirestore(
-            title: 'Product Expiry Alert',
-            body: '${product.productName} will expire in $daysLeft days!',
-            userId: product.userId,
-          );
-        } else if (daysLeft == 0) {
-          // Log heavily on the exact day
-          await LocalNotificationServices.showSimpleNotification(
-            'Product Expires TODAY',
-            '${product.productName} is expiring today!',
-            product.userId,
-          );
-          await _logNotificationToFirestore(
-            title: 'Product Expires TODAY',
-            body: '${product.productName} is expiring today!',
-            userId: product.userId,
-          );
-        }
-      }
-
-      log("Background task completed successfully.");
+      log("Background task completed successfully. ($sentCount sent)");
       return true;
     } catch (err) {
       log("Background task failed: $err");
@@ -94,11 +68,13 @@ void callbackDispatcher() {
 Future<void> _handleTestNotification(String userId) async {
   final testTitle = 'Background Test Alert';
   final testBody = 'This is a test notification injected from the background!';
+  final notifId = generateStableNotificationId('test_alert_$userId');
 
   await LocalNotificationServices.showSimpleNotification(
     testTitle,
     testBody,
     userId,
+    id: notifId,
   );
 
   await _logNotificationToFirestore(
