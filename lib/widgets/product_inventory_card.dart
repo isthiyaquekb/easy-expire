@@ -1,4 +1,5 @@
 import 'package:easyexpire/core/constant/app_colors.dart';
+import 'package:easyexpire/core/constant/expiry_policy.dart';
 import 'package:flutter/material.dart';
 
 class ProductInventoryCard extends StatelessWidget {
@@ -27,34 +28,27 @@ class ProductInventoryCard extends StatelessWidget {
     Color progressBarFillColor;
     IconData? badgeIcon; // Optional icon for the badge
 
-    if (daysLeft < 0) {
+    if (ExpiryPolicy.isExpired(daysLeft)) {
       badgeText = "Expired";
       badgeBgColor = AppColors.errorContainerBackground;
       badgeTextColor = AppColors.onErrorContainerText;
       progressBarFillColor = AppColors.errorProgressBarFill;
       badgeIcon = Icons.error_outline; // Exclamation mark icon for expired
-    } else if (daysLeft == 0) {
+    } else if (ExpiryPolicy.isUrgent(daysLeft)) {
       badgeText = "Today";
       badgeBgColor = AppColors.warningContainerBackground;
       badgeTextColor = AppColors.onWarningContainerText;
       progressBarFillColor = AppColors.warningProgressBarFill;
       badgeIcon = Icons.access_time; // Clock icon for expiring today
-    } else if (daysLeft <= 3) {
+    } else if (ExpiryPolicy.isWarning(daysLeft)) {
       badgeText = "$daysLeft Days";
       badgeBgColor =
-          AppColors.errorContainerBackground; // Red for immediate warning
-      badgeTextColor = AppColors.onErrorContainerText;
-      progressBarFillColor = AppColors.errorProgressBarFill;
-      badgeIcon = Icons.warning_amber_rounded; // Warning icon
-    } else if (daysLeft <= 7) {
-      badgeText = "$daysLeft Days";
-      badgeBgColor =
-          AppColors.warningContainerBackground; // Orange for medium warning
+          AppColors.warningContainerBackground; // Warning color for warning window
       badgeTextColor = AppColors.onWarningContainerText;
       progressBarFillColor = AppColors.warningProgressBarFill;
-      badgeIcon = Icons.watch_later_outlined; // Watch icon
+      badgeIcon = Icons.warning_amber_rounded; // Warning icon
     } else {
-      badgeText = "$daysLeft Days"; // Default for longer expiry
+      badgeText = "$daysLeft Days"; // Safe status beyond warning window
       badgeBgColor = AppColors.goodContainerBackground;
       badgeTextColor = AppColors.onGoodContainerText;
       progressBarFillColor = AppColors.goodProgressBarFill;

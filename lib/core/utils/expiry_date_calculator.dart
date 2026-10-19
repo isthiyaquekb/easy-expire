@@ -2,13 +2,18 @@
 /// and deterministic notification ID generation.
 library;
 
+import 'package:easyexpire/core/constant/expiry_policy.dart';
+
 /// Notification schedule tier based on days remaining until expiry.
 enum ExpiryNotificationTier {
-  /// 1 or more calendar days remaining (max once per calendar day).
+  /// In the warning window (1..warningWindowDays) - at most once per calendar day at 09:00.
   dailyReminder,
 
   /// Exactly 0 calendar days remaining (expiring today, min 2-hour interval).
   zeroDayReminder,
+
+  /// Safely beyond warning window (> warningWindowDays). No notification.
+  safe,
 
   /// Less than 0 calendar days remaining (already expired, cancel reminders).
   expired,
@@ -60,21 +65,24 @@ int calculateCalendarDaysRemaining(
   return utcExpiry.difference(utcReference).inDays;
 }
 
-/// Determines the notification tier for a given [daysRemaining].
+/// Determines the notification tier for a given [daysRemaining] using [ExpiryPolicy].
 ExpiryNotificationTier getExpiryTier(int daysRemaining) {
-  if (daysRemaining > 0) {
-    return ExpiryNotificationTier.dailyReminder;
-  } else if (daysRemaining == 0) {
-    return ExpiryNotificationTier.zeroDayReminder;
-  } else {
+  if (ExpiryPolicy.isExpired(daysRemaining)) {
     return ExpiryNotificationTier.expired;
+  } else if (ExpiryPolicy.isUrgent(daysRemaining)) {
+    return ExpiryNotificationTier.zeroDayReminder;
+  } else if (ExpiryPolicy.isWarning(daysRemaining)) {
+    return ExpiryNotificationTier.dailyReminder;
+  } else {
+    return ExpiryNotificationTier.safe;
   }
 }
 
 /// Evaluates whether an expiring product should trigger a notification at [referenceTime],
-/// respecting deduplication rules:
-/// - Daily reminders (`daysRemaining >= 1`): At most once per calendar day.
-/// - Zero-day reminders (`daysRemaining == 0`): At most once every 2 hours (120 minutes).
+/// respecting deduplication rules and [ExpiryPolicy]:
+/// - Daily warning reminders (`1 <= daysRemaining <= warningWindowDays`): At most once per calendar day.
+/// - Zero-day urgent reminders (`daysRemaining == 0`): At most once every 2 hours (120 minutes).
+/// - Safe items (`daysRemaining > warningWindowDays`): No notifications.
 /// - Expired items (`daysRemaining < 0`): No notifications, cancel existing schedules.
 ExpiryNotificationDecision evaluateNotificationSchedule({
   required String productName,
@@ -145,6 +153,17 @@ ExpiryNotificationDecision evaluateNotificationSchedule({
         daysRemaining: 0,
         title: 'Product Expires TODAY',
         body: '$productName is expiring today!',
+      );
+
+    case ExpiryNotificationTier.safe:
+      return ExpiryNotificationDecision(
+        shouldNotify: false,
+        tier: tier,
+        daysRemaining: daysRemaining,
+        title: '',
+        body: '',
+        reason:
+            'Product is safe ($daysRemaining days remaining > ${ExpiryPolicy.warningWindowDays})',
       );
 
     case ExpiryNotificationTier.expired:

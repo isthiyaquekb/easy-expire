@@ -120,8 +120,8 @@ void main() {
   group('evaluateNotificationSchedule Decision Tests', () {
     final ref = DateTime(2026, 10, 18, 10, 0);
 
-    test('10 days remaining triggers daily reminder with expected body', () {
-      final expiry = ref.add(const Duration(days: 10));
+    test('Within warning window (4 days) triggers daily reminder with expected body', () {
+      final expiry = ref.add(const Duration(days: 4));
       final decision = evaluateNotificationSchedule(
         productName: 'Milk',
         expiryDate: expiry,
@@ -130,8 +130,21 @@ void main() {
 
       expect(decision.shouldNotify, isTrue);
       expect(decision.tier, equals(ExpiryNotificationTier.dailyReminder));
+      expect(decision.daysRemaining, equals(4));
+      expect(decision.body, equals('Milk will expire in 4 days!'));
+    });
+
+    test('Beyond warning window (10 days) is safe and does not notify', () {
+      final expiry = ref.add(const Duration(days: 10));
+      final decision = evaluateNotificationSchedule(
+        productName: 'Milk',
+        expiryDate: expiry,
+        referenceTime: ref,
+      );
+
+      expect(decision.shouldNotify, isFalse);
+      expect(decision.tier, equals(ExpiryNotificationTier.safe));
       expect(decision.daysRemaining, equals(10));
-      expect(decision.body, equals('Milk will expire in 10 days!'));
     });
 
     test('1 day remaining triggers tomorrow reminder text', () {

@@ -336,6 +336,7 @@ class LocalNotificationServices {
     required String body,
     required DateTime scheduledDate,
     String? payload,
+    DateTime? referenceTime,
   }) async {
     try {
       final tz.TZDateTime tzScheduledDate = tz.TZDateTime.from(
@@ -343,8 +344,13 @@ class LocalNotificationServices {
         tz.local,
       );
 
+      final currentNow =
+          referenceTime != null
+              ? tz.TZDateTime.from(referenceTime, tz.local)
+              : tz.TZDateTime.now(tz.local);
+
       // Do not attempt to schedule in the past
-      if (tzScheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
+      if (tzScheduledDate.isBefore(currentNow)) {
         log("Cannot schedule notification $id in the past: $tzScheduledDate");
         return false;
       }

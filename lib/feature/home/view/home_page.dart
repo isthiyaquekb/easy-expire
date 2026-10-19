@@ -7,6 +7,7 @@ import 'package:easyexpire/utils/Formatter/app_date_formatter.dart';
 import 'package:easyexpire/widgets/common_app_bar.dart';
 import 'package:easyexpire/widgets/overview_card.dart';
 import 'package:easyexpire/widgets/urgent_attention_tile.dart';
+import 'package:easyexpire/core/constant/expiry_policy.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
@@ -72,14 +73,15 @@ class HomePage extends StatelessWidget {
       ),
       body: Consumer<HomeViewModel>(
         builder: (context, viewModel, child) {
-          // Calculate statistics based on productList
-          final now = DateTime.now();
-          final today = DateTime(now.year, now.month, now.day);
-
+          // Calculate statistics based on productList using ExpiryPolicy
           final expiredItems =
-              viewModel.productList.where((p) => p.daysLeft < 0).toList();
+              viewModel.productList
+                  .where((p) => ExpiryPolicy.isExpired(p.daysLeft))
+                  .toList();
           final expiringTodayItems =
-              viewModel.productList.where((p) => p.daysLeft == 0).toList();
+              viewModel.productList
+                  .where((p) => ExpiryPolicy.isUrgent(p.daysLeft))
+                  .toList();
           final totalSKUs =
               viewModel
                   .productList
@@ -93,11 +95,13 @@ class HomePage extends StatelessWidget {
             (a, b) => a.daysLeft!.compareTo(b.daysLeft!),
           ); // Sort by days left, most expired first
 
-          // Safely calculate total quantity for safe status
+          // Calculate total quantity strictly for items safe beyond warning window
           int safeStatusSKUs = 0;
           for (var product in viewModel.productList) {
-            safeStatusSKUs +=
-                product.quantity ?? 0; // Assuming quantity is int?
+            if (ExpiryPolicy.isSafe(product.daysLeft)) {
+              safeStatusSKUs +=
+                  product.quantity ?? 0; // Assuming quantity is int?
+            }
           }
 
           final isDark = Theme.of(context).brightness == Brightness.dark;

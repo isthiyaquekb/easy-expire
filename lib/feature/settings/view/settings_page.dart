@@ -1,7 +1,9 @@
 import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/feature/settings/view/support_feedback_sheet.dart';
 import 'package:easyexpire/feature/settings/viewmodel/settings_viewmodel.dart';
+import 'package:easyexpire/core/services/product_notification_coordinator.dart';
 import 'package:easyexpire/widgets/common_app_bar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -201,6 +203,74 @@ class SettingsPage extends StatelessWidget {
                   provider.deleteAccount(context);
                 },
               ),
+
+              if (kDebugMode) ...[
+                Divider(
+                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+                  height: 32,
+                ),
+                _buildSectionHeader(theme, 'DEBUG DIAGNOSTICS'),
+                ListTile(
+                  leading: Icon(Icons.bug_report_outlined, color: iconColor),
+                  title: Text(
+                    'Dump Pending Notifications',
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
+                  subtitle: Text(
+                    'View pending notifications and log with [NOTIF] tag',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () async {
+                    final requests =
+                        await ProductNotificationCoordinator.dumpPendingNotifications();
+                    if (!context.mounted) return;
+                    showDialog(
+                      context: context,
+                      builder:
+                          (ctx) => AlertDialog(
+                            title: Text(
+                              'Pending Notifications (${requests.length})',
+                            ),
+                            content: SizedBox(
+                              width: double.maxFinite,
+                              child:
+                                  requests.isEmpty
+                                      ? const Text(
+                                        'No pending notifications scheduled.',
+                                      )
+                                      : ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: requests.length,
+                                        itemBuilder:
+                                            (ctx, i) => ListTile(
+                                              dense: true,
+                                              title: Text(
+                                                '${requests[i].title} (ID: ${requests[i].id})',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              subtitle: Text(
+                                                '${requests[i].body}\nPayload: ${requests[i].payload}',
+                                              ),
+                                            ),
+                                      ),
+                            ),
+                            actions: [
+                              TextButton(
+                                child: const Text('Close'),
+                                onPressed: () => Navigator.pop(ctx),
+                              ),
+                            ],
+                          ),
+                    );
+                  },
+                ),
+              ],
 
               const SizedBox(height: 24),
 

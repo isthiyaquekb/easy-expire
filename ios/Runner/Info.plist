@@ -54,6 +54,7 @@
 	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
+		<string>workmanager.background.task</string>
 		<string>task-identifier</string>
 	</array>
 </dict>

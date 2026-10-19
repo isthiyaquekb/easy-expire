@@ -1,21 +1,12 @@
+import 'package:easyexpire/core/constant/app_assets.dart';
 import 'package:easyexpire/core/constant/app_colors.dart';
+import 'package:easyexpire/core/constant/expiry_policy.dart';
+import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
 import 'package:easyexpire/feature/inventory/view_model/inventory_view_model.dart';
 import 'package:easyexpire/widgets/common_app_bar.dart';
-import 'package:easyexpire/widgets/common_button.dart';
 import 'package:easyexpire/widgets/filter_chip_button.dart';
 import 'package:easyexpire/widgets/product_inventory_card.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import 'package:easyexpire/core/constant/app_assets.dart';
-import 'package:easyexpire/core/constant/app_colors.dart';
-import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
-import 'package:easyexpire/utils/Formatter/app_date_formatter.dart';
-import 'package:easyexpire/widgets/common_app_bar.dart';
-import 'package:easyexpire/widgets/overview_card.dart';
-import 'package:easyexpire/widgets/urgent_attention_tile.dart';
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 class InventoryPage extends StatelessWidget {
@@ -305,9 +296,15 @@ class InventoryPage extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           FilterChipButton(
-                            text: "Expires in 3 Days", // Filter for 1 to 3 days
-                            isSelected: homeViewModel.selectedFilter == 3,
-                            onTap: () => homeViewModel.setSelectedFilter(3),
+                            text:
+                                "Expires in ${ExpiryPolicy.warningWindowDays} Days", // Warning window filter
+                            isSelected:
+                                homeViewModel.selectedFilter ==
+                                ExpiryPolicy.warningWindowDays,
+                            onTap:
+                                () => homeViewModel.setSelectedFilter(
+                                  ExpiryPolicy.warningWindowDays,
+                                ),
                           ),
                           const SizedBox(width: 8),
                           FilterChipButton(
@@ -450,10 +447,21 @@ class InventoryPage extends StatelessWidget {
                                                     fontSize: 24,
                                                     fontWeight: FontWeight.w700,
                                                     color:
-                                                        provider
-                                                                    .productFilteredList[index]
-                                                                    .daysLeft <
-                                                                5
+                                                        (ExpiryPolicy.isExpired(
+                                                                  provider
+                                                                      .productFilteredList[index]
+                                                                      .daysLeft,
+                                                                ) ||
+                                                                ExpiryPolicy.isUrgent(
+                                                                  provider
+                                                                      .productFilteredList[index]
+                                                                      .daysLeft,
+                                                                ) ||
+                                                                ExpiryPolicy.isWarning(
+                                                                  provider
+                                                                      .productFilteredList[index]
+                                                                      .daysLeft,
+                                                                ))
                                                             ? AppColors
                                                                 .toxicColor
                                                             : provider
