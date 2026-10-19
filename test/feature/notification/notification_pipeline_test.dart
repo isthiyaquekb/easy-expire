@@ -17,8 +17,8 @@ void main() {
     late NotificationDeduplicationService deduplicationService;
     late ProductNotificationCoordinator coordinator;
 
-    // Use a fixed reference time for deterministic testing (10:00 AM)
-    final now = DateTime(2026, 10, 18, 10, 0, 0);
+    // Use a fixed reference time in the future for deterministic testing (10:00 AM)
+    final now = DateTime(2028, 10, 18, 10, 0, 0);
 
     setUp(() async {
       MockNotificationState.reset();

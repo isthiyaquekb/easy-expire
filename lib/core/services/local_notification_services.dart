@@ -329,6 +329,16 @@ class LocalNotificationServices {
     }
   }
 
+  /// Retrieves list of currently active (delivered to notification tray) notifications.
+  static Future<List<ActiveNotification>> getActiveNotifications() async {
+    try {
+      return await flutterLocalNotificationsPlugin.getActiveNotifications();
+    } catch (e) {
+      log("Error retrieving active notifications: $e");
+      return [];
+    }
+  }
+
   /// Schedules a timezone-aware notification for a product at [scheduledDate].
   static Future<bool> scheduleProductNotification({
     required int id,

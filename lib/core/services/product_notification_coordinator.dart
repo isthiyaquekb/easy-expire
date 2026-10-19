@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:easyexpire/core/constant/expiry_policy.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
 import 'package:easyexpire/core/services/notification_deduplication_service.dart';
+import 'package:easyexpire/core/services/notification_history_service.dart';
 import 'package:easyexpire/core/utils/expiry_date_calculator.dart';
 import 'package:easyexpire/feature/inventory/model/inventory_model.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -43,14 +44,35 @@ class DigestPayload {
 /// Central coordinator for product notifications.
 ///
 /// Implements category digests (Urgent and Warning), 7-day pre-scheduling,
-/// idempotent reconciliation, and platform limit respect.
+/// idempotent reconciliation, platform limit respect, and in-app Firestore history sync.
+///
+/// ============================================================================
+/// IMPORTANT PLATFORM LIMITATION:
+/// Scheduled local notifications on iOS and Android are delivered by the operating
+/// system's notification daemon directly without executing Dart isolate code.
+/// Therefore, in-app notification history entries in Cloud Firestore cannot be written
+/// at the precise second a scheduled local notification is delivered.
+///
+/// To handle this architectural limitation:
+/// 1. History entries are written when the reconciliation pipeline DECIDES to notify
+///    (e.g., app open, add/edit/delete, login, or WorkManager periodic task).
+/// 2. On app open and on resume, `getActiveNotifications()` is queried to sync
+///    delivered notifications and refresh `updatedAt` for those entries.
+/// 3. On notification tap, `isRead` is marked true and the user is routed to the product.
+/// ============================================================================
 class ProductNotificationCoordinator {
   final NotificationDeduplicationService _deduplicationService;
+  NotificationHistoryService? _historyService;
 
   ProductNotificationCoordinator({
     NotificationDeduplicationService? deduplicationService,
+    NotificationHistoryService? historyService,
   }) : _deduplicationService =
-           deduplicationService ?? NotificationDeduplicationService();
+           deduplicationService ?? NotificationDeduplicationService(),
+       _historyService = historyService;
+
+  NotificationHistoryService get historyService =>
+      _historyService ??= NotificationHistoryService();
 
   /// Legacy helper deriving a deterministic ID for a single product (used for individual lookups/cancellations).
   int getNotificationId(InventoryModel product) {
@@ -168,6 +190,7 @@ class ProductNotificationCoordinator {
   Future<int> reconcileProducts(
     List<InventoryModel> products, {
     DateTime? referenceTime,
+    bool syncHistory = true,
     Future<void> Function({
       required String title,
       required String body,
@@ -396,6 +419,22 @@ class ProductNotificationCoordinator {
         log(
           '[NOTIF] Cancelled obsolete pending notification ID: ${request.id} ("${request.title}")',
         );
+      }
+    }
+
+    // 6. Sync in-app notification history in Cloud Firestore
+    if (syncHistory && products.isNotEmpty) {
+      final userId = products.first.userId;
+      if (userId.isNotEmpty) {
+        try {
+          await historyService.syncNotificationHistory(
+            userId: userId,
+            products: products,
+            referenceTime: now,
+          );
+        } catch (e) {
+          log('[NOTIF] History sync skipped or failed: $e');
+        }
       }
     }
 

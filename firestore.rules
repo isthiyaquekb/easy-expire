@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User root document and subcollections
+    match /Users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      // In-app notification history subcollection: one document per product
+      match /notifications/{productId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Products collection: user-scoped access
+    match /products/{productId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.user_id;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.user_id;
+    }
+  }
+}

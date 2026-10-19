@@ -10,10 +10,12 @@ import 'package:timezone/timezone.dart' as tz;
 class MockNotificationState {
   static final Map<int, Map<String, dynamic>> pendingMap = {};
   static final List<Map<String, dynamic>> shownNotifications = [];
+  static final List<Map<String, dynamic>> activeNotifications = [];
 
   static void reset() {
     pendingMap.clear();
     shownNotifications.clear();
+    activeNotifications.clear();
   }
 }
 
@@ -52,6 +54,10 @@ void setupTestEnvironment() {
       .setMockMethodCallHandler(notifChannel, (MethodCall methodCall) async {
         if (methodCall.method == 'pendingNotificationRequests') {
           return MockNotificationState.pendingMap.values
+              .map((map) => Map<String, dynamic>.from(map))
+              .toList();
+        } else if (methodCall.method == 'getActiveNotifications') {
+          return MockNotificationState.activeNotifications
               .map((map) => Map<String, dynamic>.from(map))
               .toList();
         } else if (methodCall.method == 'zonedSchedule' ||
