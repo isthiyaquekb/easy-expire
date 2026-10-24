@@ -3,9 +3,6 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/core/constant/app_theme.dart';
-import 'package:easyexpire/core/services/background_service.dart';
-import 'package:easyexpire/core/services/fcm_service.dart';
-import 'package:easyexpire/core/services/firebase_services.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
 import 'package:easyexpire/core/services/product_notification_coordinator.dart';
 import 'package:easyexpire/core/theme/theme_view_model.dart';
@@ -20,25 +17,16 @@ import 'package:easyexpire/feature/profile/viewmodel/profile_viewmodel.dart';
 import 'package:easyexpire/feature/settings/viewmodel/settings_viewmodel.dart';
 import 'package:easyexpire/feature/splash/view_model/splash_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:toastification/toastification.dart';
 
+import 'package:easyexpire/core/services/app_initializer.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init();
-  await FirebaseServices().initializeFirebase();
-  await LocalNotificationServices.init();
-  await BackgroundService.initialize();
-  await FcmService().initialize(
-    onNotificationTap: (RemoteMessage message) {
-      log('[NOTIF] FCM tap handler received: ${message.data}');
-      _handleNotificationNavigation(
-        message.data['payload'] ?? message.data['category'],
-      );
-    },
+  await AppInitializer.initialize(
+    onNotificationNavigation: _handleNotificationNavigation,
   );
 
   runApp(
@@ -97,6 +85,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      if (!AppInitializer.isFirebaseReady) {
+        log('[NOTIF] App resumed but Firebase is not ready. Skipping resume check.');
+        return;
+      }
       log('[NOTIF] App resumed: checking and reconciling notifications');
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {

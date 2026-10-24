@@ -9,6 +9,8 @@ class ProductInventoryCard extends StatelessWidget {
   final int maxQuantity; // Used to calculate progress bar percentage
   final int
   daysLeft; // Positive for days remaining, 0 for today, negative for expired
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const ProductInventoryCard({
     super.key,
@@ -17,6 +19,8 @@ class ProductInventoryCard extends StatelessWidget {
     required this.quantity,
     required this.maxQuantity,
     required this.daysLeft,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -111,40 +115,82 @@ class ProductInventoryCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12), // Spacing between text and badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ), // px-3 py-1
-                decoration: BoxDecoration(
-                  color: badgeBgColor,
-                  borderRadius: BorderRadius.circular(999.0), // rounded-full
-                ),
-                child: Row(
-                  mainAxisSize:
-                      MainAxisSize
-                          .min, // Ensures the row only takes necessary width
-                  children: [
-                    if (badgeIcon != null) ...[
-                      Icon(
-                        badgeIcon,
-                        size: 16,
-                        color: badgeTextColor,
-                      ), // material-symbols-outlined text-[16px]
-                      const SizedBox(width: 4), // gap-1
-                    ],
-                    Text(
-                      badgeText
-                          .toUpperCase(), // text-label-caps font-label-caps
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: badgeTextColor,
-                        fontWeight: FontWeight.w900, // Very bold for caps
-                        fontSize: 10,
-                        letterSpacing: 0.8,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badgeBgColor,
+                      borderRadius: BorderRadius.circular(999.0),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (badgeIcon != null) ...[
+                          Icon(
+                            badgeIcon,
+                            size: 16,
+                            color: badgeTextColor,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        Text(
+                          badgeText.toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: badgeTextColor,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 10,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (onEdit != null || onDelete != null) ...[
+                    const SizedBox(width: 4),
+                    PopupMenuButton<String>(
+                      icon: Icon(
+                        Icons.more_vert,
+                        size: 20,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onSelected: (val) {
+                        if (val == 'edit') onEdit?.call();
+                        if (val == 'delete') onDelete?.call();
+                      },
+                      itemBuilder: (context) => [
+                        if (onEdit != null)
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_outlined, size: 18),
+                                SizedBox(width: 8),
+                                Text('Edit'),
+                              ],
+                            ),
+                          ),
+                        if (onDelete != null)
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Delete', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                   ],
-                ),
+                ],
               ),
             ],
           ),

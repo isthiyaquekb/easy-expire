@@ -188,6 +188,7 @@ class AddNewProductScreen extends StatelessWidget {
                                         label: "Product Name",
                                         hintText: "e.g. Organic Avocados",
                                         controller: provider.nameController,
+                                        validator: (v) => provider.nameValidator(v?.trim() ?? ''),
                                       ),
                                       const SizedBox(height: 16),
 
@@ -202,6 +203,7 @@ class AddNewProductScreen extends StatelessWidget {
                                                   TextInputType.number,
                                               controller:
                                                   provider.quantityController,
+                                              validator: (v) => provider.quantityValidator(v),
                                             ),
                                           ),
                                           const SizedBox(width: 16),
@@ -211,6 +213,7 @@ class AddNewProductScreen extends StatelessWidget {
                                               hintText: "B-12345",
                                               controller:
                                                   provider.batchNoController,
+                                              validator: (v) => provider.batchValidator(v?.trim() ?? ''),
                                             ),
                                           ),
                                         ],
@@ -223,6 +226,7 @@ class AddNewProductScreen extends StatelessWidget {
                                         hintText: "mm/dd/yyyy",
                                         readOnly: true,
                                         controller: provider.dateController,
+                                        validator: (v) => provider.dateValidator(v?.trim() ?? ''),
                                         onTap: () => provider.pickDate(context),
                                         suffixIcon: Row(
                                           mainAxisSize: MainAxisSize.min,

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:easyexpire/core/services/notification_history_service.dart';
 import 'package:easyexpire/core/services/product_notification_coordinator.dart';
 import 'package:easyexpire/core/utils/expiry_date_calculator.dart';
 import 'package:easyexpire/core/utils/ocr_parser.dart';
@@ -11,10 +12,20 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/services/firebase_services.dart';
 
 class InventoryViewModel extends ChangeNotifier {
-  final FirebaseServices _firebaseServices = FirebaseServices();
+  final FirebaseServices _firebaseServices;
+  final FirebaseFirestore? _firestore;
+
+  InventoryViewModel({
+    FirebaseServices? firebaseServices,
+    FirebaseFirestore? firestore,
+  })  : _firebaseServices = firebaseServices ?? FirebaseServices(),
+        _firestore = firestore;
+
+  FirebaseFirestore get firestore => _firestore ?? _firebaseServices.fireStore;
 
   TextEditingController _barcodeController = TextEditingController();
   TextEditingController _nameController = TextEditingController();
@@ -104,6 +115,25 @@ class InventoryViewModel extends ChangeNotifier {
     return null;
   }
 
+  ///QUANTITY VALIDATOR
+  String? quantityValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter a quantity.';
+    }
+    final trimmed = value.trim();
+    final parsed = int.tryParse(trimmed);
+    if (parsed == null) {
+      return 'Please enter a valid whole number.';
+    }
+    if (parsed <= 0) {
+      return 'Quantity must be greater than 0.';
+    }
+    if (parsed > 999999) {
+      return 'Quantity exceeds maximum limit.';
+    }
+    return null;
+  }
+
   void onSelectingDate() {
     print("PRINTING SELECTED DATE:${dateController.text}");
     final inputFormat = DateFormat("dd/MM/yyyy");
@@ -163,72 +193,223 @@ class InventoryViewModel extends ChangeNotifier {
   }
 
   Future<void> submit(BuildContext context) async {
+    final qtyError = quantityValidator(quantityController.text);
+    if (qtyError != null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(qtyError),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
     final effectiveUserId =
         userId.isNotEmpty
             ? userId
             : (_firebaseServices.auth.currentUser?.uid ?? '');
-    print("PRODUCT NAME:${nameController.text}");
-    print("QUANTITY NAME:${quantityController.text}");
-    print("DATE EXPIRY:$currentDate");
-    print("DAY LEFT:$dayLeft");
-    print("BATCH EXPIRY:${batchNoController.text}");
+    final parsedQuantity = int.parse(quantityController.text.trim());
+
     var data = InventoryModel(
       userId: effectiveUserId,
-      productName: nameController.text,
+      productName: nameController.text.trim(),
       expiryDate: AppDateFormatter.firebaseTimestampFormatter(
         currentDate.toString(),
       ),
-      batchNo: batchNoController.text,
-      quantity: int.parse(quantityController.text),
+      batchNo: batchNoController.text.trim(),
+      quantity: parsedQuantity,
       daysLeft: dayLeft,
     );
     await addProduct(data, context);
-    print("JSON TO DB:${data.toMap()}");
   }
 
   Future<void> addProduct(InventoryModel data, BuildContext context) async {
     try {
-      await _firebaseServices.fireStore
+      final docRef = await _firebaseServices.fireStore
           .collection(_firebaseServices.productCollection)
-          .add(data.toMap())
-          .then((value) async {
-            final productWithId = InventoryModel(
-              id: value.id,
-              productName: data.productName,
-              userId: data.userId,
-              expiryDate: data.expiryDate,
-              batchNo: data.batchNo,
-              quantity: data.quantity,
-              daysLeft: data.daysLeft,
-            );
-            try {
-              await ProductNotificationCoordinator()
-                  .scheduleProductNotifications(productWithId);
-            } catch (notifErr) {
-              log(
-                "Error scheduling notifications for added product: $notifErr",
-              );
-            }
+          .add(data.toMap());
 
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Product added successfully')),
-              );
-            }
-            resetFields();
-            if (context.mounted) {
-              Provider.of<HomeViewModel>(
-                context,
-                listen: false,
-              ).getAllProduct(userId);
-              Provider.of<DashboardProvider>(
-                context,
-                listen: false,
-              ).changeBottomNavIndex(0);
-            }
-          });
+      final productWithId = InventoryModel(
+        id: docRef.id,
+        productName: data.productName,
+        userId: data.userId,
+        expiryDate: data.expiryDate,
+        batchNo: data.batchNo,
+        quantity: data.quantity,
+        daysLeft: data.daysLeft,
+      );
+
+      try {
+        await ProductNotificationCoordinator()
+            .scheduleProductNotifications(productWithId);
+      } catch (notifErr) {
+        log("Error scheduling notifications for added product: $notifErr");
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product added successfully')),
+        );
+      }
+      resetFields();
+      if (context.mounted) {
+        Provider.of<HomeViewModel>(
+          context,
+          listen: false,
+        ).getAllProduct(data.userId);
+        Provider.of<DashboardProvider>(
+          context,
+          listen: false,
+        ).changeBottomNavIndex(0);
+      }
     } catch (e) {
       log('Error adding product: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add product: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Updates an existing product in Firestore and reconciles scheduled notifications.
+  Future<bool> updateProduct(
+    InventoryModel updatedProduct, [
+    BuildContext? context,
+  ]) async {
+    final productId = updatedProduct.id;
+    if (productId == null || productId.isEmpty) {
+      log('[INVENTORY] Error updating product: document ID is missing.');
+      return false;
+    }
+
+    final currentUid =
+        userId.isNotEmpty
+            ? userId
+            : (_firebaseServices.auth.currentUser?.uid ?? '');
+    if (updatedProduct.userId.isNotEmpty &&
+        currentUid.isNotEmpty &&
+        updatedProduct.userId != currentUid) {
+      log('[INVENTORY] Unauthorized update attempt on product $productId by $currentUid');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unauthorized: You do not own this product.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return false;
+    }
+
+    try {
+      await firestore
+          .collection(_firebaseServices.productCollection)
+          .doc(productId)
+          .update(updatedProduct.toMap());
+
+      try {
+        await ProductNotificationCoordinator()
+            .scheduleProductNotifications(updatedProduct);
+      } catch (notifErr) {
+        log('[INVENTORY] Error reconciling notification for updated product: $notifErr');
+      }
+
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product updated successfully')),
+        );
+        Provider.of<HomeViewModel>(
+          context,
+          listen: false,
+        ).getAllProduct(updatedProduct.userId);
+      }
+      return true;
+    } catch (e) {
+      log('[INVENTORY] Error updating product: $e');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update product: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return false;
+    }
+  }
+
+  /// Deletes a product from Firestore and cleans up associated notification records.
+  Future<bool> deleteProduct(
+    InventoryModel product, [
+    BuildContext? context,
+  ]) async {
+    final productId = product.id;
+    if (productId == null || productId.isEmpty) {
+      log('[INVENTORY] Error deleting product: document ID is missing.');
+      return false;
+    }
+
+    final currentUid =
+        userId.isNotEmpty
+            ? userId
+            : (_firebaseServices.auth.currentUser?.uid ?? '');
+    if (product.userId.isNotEmpty &&
+        currentUid.isNotEmpty &&
+        product.userId != currentUid) {
+      log('[INVENTORY] Unauthorized deletion attempt on product $productId by $currentUid');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unauthorized: You do not own this product.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return false;
+    }
+
+    try {
+      await firestore
+          .collection(_firebaseServices.productCollection)
+          .doc(productId)
+          .delete();
+
+      try {
+        await NotificationHistoryService().deleteNotification(
+          userId: product.userId,
+          productId: productId,
+        );
+      } catch (historyErr) {
+        log('[INVENTORY] Error deleting notification history for $productId: $historyErr');
+      }
+
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product deleted successfully')),
+        );
+        Provider.of<HomeViewModel>(
+          context,
+          listen: false,
+        ).getAllProduct(product.userId);
+      }
+      return true;
+    } catch (e) {
+      log('[INVENTORY] Error deleting product: $e');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete product: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return false;
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:easyexpire/core/constant/expiry_policy.dart';
 import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
 import 'package:easyexpire/feature/inventory/view_model/inventory_view_model.dart';
+import 'package:easyexpire/feature/inventory/view/edit_product_screen.dart';
 import 'package:easyexpire/widgets/common_app_bar.dart';
 import 'package:easyexpire/widgets/filter_chip_button.dart';
 import 'package:easyexpire/widgets/product_inventory_card.dart';
@@ -598,16 +599,23 @@ class InventoryPage extends StatelessWidget {
                         //   ),
                         // );
                         return ProductInventoryCard(
-                          // productName from InventoryModel
-                          productName: product.productName ?? 'Unknown Product',
-                          // batchId from InventoryModel (assuming 'batchNo' is the field)
-                          batchId: product.batchNo ?? 'N/A',
-                          // quantity from InventoryModel
-                          quantity: product.quantity ?? 0,
-                          // maxQuantity for the progress bar (see calculation above)
+                          productName: product.productName,
+                          batchId: product.batchNo,
+                          quantity: product.quantity,
                           maxQuantity: maxQuantity,
-                          // daysLeft from InventoryModel
-                          daysLeft: product.daysLeft ?? 0,
+                          daysLeft: product.daysLeft,
+                          onEdit: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        EditProductScreen(product: product),
+                              ),
+                            );
+                          },
+                          onDelete: () {
+                            _showDeleteConfirmation(context, product);
+                          },
                         );
                       },
                     ),
@@ -616,6 +624,42 @@ class InventoryPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, dynamic product) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogCtx) => AlertDialog(
+            title: const Text('Delete Product'),
+            content: Text(
+              'Are you sure you want to delete "${product.productName}" (Batch: ${product.batchNo})? This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogCtx).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogCtx).pop();
+                  final provider = Provider.of<InventoryViewModel>(
+                    context,
+                    listen: false,
+                  );
+                  provider.deleteProduct(product, context);
+                },
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
     );
   }
 

@@ -129,24 +129,66 @@ Future<void> _handleTestNotification(String userId) async {
   log('[NOTIF] Test background notification delivered (ID: $notifId)');
 }
 
+Future<void> logNotificationToFirestore({
+  required String title,
+  required String body,
+  required String userId,
+  FirebaseFirestore? firestore,
+}) async {
+  try {
+    if (userId.isEmpty) {
+      log('[NOTIF] logNotificationToFirestore skipped: userId is empty');
+      return;
+    }
+    final db = firestore ?? FirebaseFirestore.instance;
+    final now = DateTime.now();
+    final docId =
+        'digest_${now.year}_${now.month}_${now.day}_${generateStableNotificationId(title)}';
+
+    final category =
+        title.toLowerCase().contains('today') ||
+                title.toLowerCase().contains('urgent')
+            ? 'urgent'
+            : 'warning';
+
+    await db
+        .collection('Users')
+        .doc(userId)
+        .collection('notifications')
+        .doc(docId)
+        .set({
+          'notificationId': generateStableNotificationId(docId),
+          'productId': docId,
+          'title': title,
+          'body': body,
+          'category': category,
+          'createdAt': Timestamp.fromDate(now),
+          'updatedAt': Timestamp.fromDate(now),
+          'isRead': false,
+          'notifyCount': 1,
+        }, SetOptions(merge: true));
+
+    log(
+      '[NOTIF] Notification logged to Firestore at Users/$userId/notifications/$docId',
+    );
+  } on FirebaseException catch (fe) {
+    log(
+      '[NOTIF] Firestore permission/service error logging notification: ${fe.code} - ${fe.message}',
+    );
+  } catch (e, stack) {
+    log('[NOTIF] Error logging notification to Firestore: $e\n$stack');
+  }
+}
+
 Future<void> _logNotificationToFirestore({
   required String title,
   required String body,
   required String userId,
-}) async {
-  try {
-    if (userId.isEmpty) return;
-    await FirebaseFirestore.instance.collection('notifications').add({
-      'title': title,
-      'body': body,
-      'user_id': userId,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-    log('[NOTIF] Notification logged to Firestore for user: $userId');
-  } catch (e) {
-    log('[NOTIF] Error logging notification to Firestore: $e');
-  }
-}
+}) => logNotificationToFirestore(
+  title: title,
+  body: body,
+  userId: userId,
+);
 
 class BackgroundService {
   static const String periodicTaskName = "checkExpiryDates";
@@ -163,16 +205,20 @@ class BackgroundService {
     // Persist user ID locally so the background isolate always has access
     GetStorage().write('saved_user_id', userId);
 
-    Workmanager().registerPeriodicTask(
-      "1", // unique id
-      periodicTaskName,
-      inputData: {'userId': userId},
-      frequency: const Duration(hours: 1), // Minimum periodic interval
-      constraints: Constraints(networkType: NetworkType.connected),
-    );
-    log(
-      '[NOTIF] Registered periodic background expiry check for user: $userId',
-    );
+    try {
+      Workmanager().registerPeriodicTask(
+        "1", // unique id
+        periodicTaskName,
+        inputData: {'userId': userId},
+        frequency: const Duration(hours: 1), // Minimum periodic interval
+        constraints: Constraints(networkType: NetworkType.connected),
+      );
+      log(
+        '[NOTIF] Registered periodic background expiry check for user: $userId',
+      );
+    } catch (e) {
+      log('[NOTIF] Could not register periodic background task: $e');
+    }
   }
 
   static void triggerOneOffTest(String userId) {

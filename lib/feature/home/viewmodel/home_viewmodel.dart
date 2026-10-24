@@ -14,7 +14,17 @@ import '../../../core/services/firebase_services.dart';
 import 'package:easyexpire/core/services/background_service.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  final FirebaseServices _firebaseServices = FirebaseServices();
+  final FirebaseFirestore? _customFirestore;
+  final FirebaseServices _firebaseServices;
+
+  FirebaseFirestore get _firestore =>
+      _customFirestore ?? FirebaseFirestore.instance;
+
+  HomeViewModel({
+    FirebaseFirestore? firestore,
+    FirebaseServices? firebaseServices,
+  })  : _customFirestore = firestore,
+        _firebaseServices = firebaseServices ?? FirebaseServices();
   var selectedCategoryIndex = 0;
   var selectedPopularIndex = 0;
   var dayLeft = 0;
@@ -142,12 +152,18 @@ class HomeViewModel extends ChangeNotifier {
   //GET ALL PRODUCT
 
   Future<void> getAllProduct(String userId) async {
+    if (userId.isEmpty) {
+      productList = [];
+      productFilteredList = [];
+      notifyListeners();
+      return;
+    }
+
     try {
       final snapshot =
-          await FirebaseFirestore.instance
+          await _firestore
               .collection('products')
               .where('user_id', isEqualTo: userId)
-              .orderBy('days_left')
               .get();
 
       productList =
@@ -156,10 +172,22 @@ class HomeViewModel extends ChangeNotifier {
             return InventoryModel.fromMap(data, docId: doc.id);
           }).toList();
 
-      // Calculate days left and filter based on selected filter
-      setSelectedFilter(null);
+      // Recalculate accurate calendar days left for each product
       _calculateDaysLeftAndFilter();
+
+      // Sort deterministically in Dart: soonest expiring first, secondary sort by product name
+      productList.sort((a, b) {
+        final cmp = a.daysLeft.compareTo(b.daysLeft);
+        if (cmp != 0) return cmp;
+        return a.productName.toLowerCase().compareTo(
+          b.productName.toLowerCase(),
+        );
+      });
+
+      // Apply current or default filter
+      setSelectedFilter(selectedFilter);
       setupNotification();
+
       try {
         await ProductNotificationCoordinator().reconcileProducts(productList);
       } catch (reconcileErr) {
@@ -168,7 +196,6 @@ class HomeViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       log('Error fetching products: $e');
-      // Handle error (e.g., show a snackbar)
     }
   }
 
