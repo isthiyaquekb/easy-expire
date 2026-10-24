@@ -1,13 +1,28 @@
 import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easyexpire/core/constant/app_keys.dart';
+import 'package:easyexpire/core/services/fcm_service.dart';
 import 'package:easyexpire/core/services/firebase_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:toastification/toastification.dart';
 
 import '../model/user_model.dart';
+
+class PasswordResetResult {
+  final bool success;
+  final String? errorMessage;
+  final String? errorCode;
+
+  const PasswordResetResult({
+    required this.success,
+    this.errorMessage,
+    this.errorCode,
+  });
+}
 
 class AuthViewModel extends ChangeNotifier {
   final storageBox = GetStorage();
@@ -38,7 +53,12 @@ class AuthViewModel extends ChangeNotifier {
       _signupStoreAddressController;
   TextEditingController get signupPhoneController => _signupPhoneController;
 
+  final FirebaseAuth? _customAuth;
   final FirebaseServices _firebaseServices = FirebaseServices();
+
+  FirebaseAuth get _auth => _customAuth ?? _firebaseServices.auth;
+
+  AuthViewModel({FirebaseAuth? auth}) : _customAuth = auth;
 
   User? _user;
 
@@ -90,6 +110,9 @@ class AuthViewModel extends ChangeNotifier {
       _user = userCredential.user;
       storageBox.write(AppKeys.keyIsLoggedIn, true);
       storageBox.write(AppKeys.keyUserId, _user?.uid);
+      if (_user != null) {
+        FcmService().syncTokenToFirestore(_user!.uid);
+      }
       notifyListeners();
       return true;
     } on FirebaseAuthException catch (e) {
@@ -112,6 +135,66 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  Future<PasswordResetResult> sendPasswordResetEmail(String email) async {
+    final trimmedEmail = email.trim();
+    if (kDebugMode) {
+      debugPrint('[AUTH-RESET] Initiating password reset for: "$trimmedEmail"');
+    }
+
+    try {
+      await _auth.sendPasswordResetEmail(email: trimmedEmail);
+      if (kDebugMode) {
+        debugPrint(
+          '[AUTH-RESET] SUCCESS: sendPasswordResetEmail call succeeded for "$trimmedEmail"',
+        );
+      }
+      return const PasswordResetResult(success: true);
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+          '[AUTH-RESET] FirebaseAuthException: code="${e.code}", message="${e.message}"',
+        );
+      }
+      final String userFriendlyMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          userFriendlyMessage = 'No account found with this email address.';
+          break;
+        case 'invalid-email':
+          userFriendlyMessage = 'The email address is not valid.';
+          break;
+        case 'too-many-requests':
+          userFriendlyMessage = 'Too many attempts. Please try again later.';
+          break;
+        case 'network-request-failed':
+          userFriendlyMessage =
+              'Network error. Please check your internet connection.';
+          break;
+        case 'operation-not-allowed':
+          userFriendlyMessage =
+              'Password reset is not enabled for this project.';
+          break;
+        default:
+          userFriendlyMessage =
+              e.message ?? 'Failed to send password reset email. Please try again.';
+          break;
+      }
+      return PasswordResetResult(
+        success: false,
+        errorMessage: userFriendlyMessage,
+        errorCode: e.code,
+      );
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[AUTH-RESET] Unexpected error: $e\n$stackTrace');
+      }
+      return const PasswordResetResult(
+        success: false,
+        errorMessage: 'An unexpected error occurred. Please try again.',
+      );
+    }
+  }
+
   void signUpSession(BuildContext context) {
     _isSignupValid = signupFormKey.currentState!.validate();
     FocusScope.of(context).unfocus();
@@ -119,7 +202,6 @@ class AuthViewModel extends ChangeNotifier {
       log("ON SAVED STORE NAME: ${signupStoreNameController.text}");
       log("ON SAVED STORE ADDRESS: ${signupStoreAddressController.text}");
       log("ON SAVED EMAIL: ${signupEmailController.text}");
-      log("ON SAVED PASSWORD: ${signupPasswordController.text}");
 
       signUp(
         context,
@@ -201,16 +283,18 @@ class AuthViewModel extends ChangeNotifier {
   void createUser(UserModel userData, BuildContext context) async {
     await _firebaseServices.fireStore
         .collection("Users")
-        .add(userData.toMap())
+        .doc(userData.id)
+        .set(userData.toMap(), SetOptions(merge: true))
         .whenComplete(() {
+          FcmService().syncTokenToFirestore(userData.id);
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Success ,Your account has been created')),
+            const SnackBar(content: Text('Success ,Your account has been created')),
           );
         })
         .catchError((error, stackTrace) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failure ,Something went wrong')),
+            const SnackBar(content: Text('Failure ,Something went wrong')),
           );
         });
   }

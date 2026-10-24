@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:easyexpire/core/constant/app_keys.dart';
 import 'package:easyexpire/core/constant/expiry_policy.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
 import 'package:easyexpire/core/services/notification_deduplication_service.dart';
@@ -6,6 +7,7 @@ import 'package:easyexpire/core/services/notification_history_service.dart';
 import 'package:easyexpire/core/utils/expiry_date_calculator.dart';
 import 'package:easyexpire/feature/inventory/model/inventory_model.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get_storage/get_storage.dart';
 
 /// Category identifiers and deterministic notification key helpers.
 class DigestNotificationKeys {
@@ -63,13 +65,16 @@ class DigestPayload {
 class ProductNotificationCoordinator {
   final NotificationDeduplicationService _deduplicationService;
   NotificationHistoryService? _historyService;
+  final GetStorage _storage;
 
   ProductNotificationCoordinator({
     NotificationDeduplicationService? deduplicationService,
     NotificationHistoryService? historyService,
+    GetStorage? storage,
   }) : _deduplicationService =
            deduplicationService ?? NotificationDeduplicationService(),
-       _historyService = historyService;
+       _historyService = historyService,
+       _storage = storage ?? deduplicationService?.storage ?? GetStorage();
 
   NotificationHistoryService get historyService =>
       _historyService ??= NotificationHistoryService();
@@ -95,25 +100,20 @@ class ProductNotificationCoordinator {
 
   /// Formats the Urgent Digest message:
   /// - 1 product: "{productName} expires TODAY"
-  /// - >1 products: "{N} products expire TODAY: {P1}, {P2}, {P3} and {M} more"
-  static DigestPayload buildUrgentDigest(List<InventoryModel> urgentProducts) {
+  /// - >1 products: "{top3 names} +{M} more"
+  static DigestPayload buildUrgentDigest(
+    List<InventoryModel> urgentProducts, {
+    bool isCatchUp = false,
+  }) {
     if (urgentProducts.isEmpty) {
       return const DigestPayload(title: '', body: '', count: 0);
     }
-    const title = 'Product Expires TODAY';
-    if (urgentProducts.length == 1) {
-      final p = urgentProducts.first;
-      return DigestPayload(
-        title: title,
-        body: '${p.productName} expires TODAY',
-        count: 1,
-      );
-    }
-    final top3 =
-        urgentProducts.take(3).map((p) => p.productName).toList().join(', ');
-    final remaining = urgentProducts.length - 3;
-    final extra = remaining > 0 ? ' and $remaining more' : '';
-    final body = '${urgentProducts.length} products expire TODAY: $top3$extra';
+    final title = formatUrgentDigestTitle(
+      urgentProducts.length,
+      isCatchUp: isCatchUp,
+    );
+    final names = urgentProducts.map((p) => p.productName).toList();
+    final body = formatUrgentDigestBody(names);
     return DigestPayload(
       title: title,
       body: body,
@@ -122,28 +122,15 @@ class ProductNotificationCoordinator {
   }
 
   /// Formats the Warning Digest message:
-  /// - 1 product: "{productName} expires in {N} days" (or "tomorrow")
-  /// - >1 products: "{N} products expire within 4 days ({NearestName} in {M} days)"
+  /// - 1 product: "{productName} will expire in {N} days!"
+  /// - >1 products: "{N} products expire within {window} days. Nearest: {NearestName} in {M} days"
   static DigestPayload buildWarningDigest(
     List<InventoryModel> warningProducts,
-    DateTime referenceDate,
-  ) {
+    DateTime referenceDate, {
+    bool isCatchUp = false,
+  }) {
     if (warningProducts.isEmpty) {
       return const DigestPayload(title: '', body: '', count: 0);
-    }
-    const title = 'Product Expiry Alert';
-    if (warningProducts.length == 1) {
-      final p = warningProducts.first;
-      final days = calculateCalendarDaysRemaining(
-        p.expiryDate.toDate(),
-        referenceDate,
-      );
-      final daysText = days == 1 ? 'tomorrow' : 'in $days days';
-      return DigestPayload(
-        title: title,
-        body: '${p.productName} will expire $daysText!',
-        count: 1,
-      );
     }
 
     // Find nearest expiring product
@@ -162,17 +149,56 @@ class ProductNotificationCoordinator {
         nearest = warningProducts[i];
       }
     }
-    final nearestText =
-        nearestDays == 1
-            ? '${nearest.productName} tomorrow'
-            : '${nearest.productName} in $nearestDays days';
-    final body =
-        '${warningProducts.length} products expire within ${ExpiryPolicy.warningWindowDays} days ($nearestText)';
+
+    final title = formatWarningDigestTitle(
+      warningProducts.length,
+      isCatchUp: isCatchUp,
+    );
+    final body = formatWarningDigestBody(
+      count: warningProducts.length,
+      nearestName: nearest.productName,
+      nearestDays: nearestDays,
+    );
+
     return DigestPayload(
       title: title,
       body: body,
       count: warningProducts.length,
     );
+  }
+
+  /// Checks if today's digest was already delivered (via FCM or local catch-up/scheduled).
+  bool isDigestDeliveredToday(DateTime date) {
+    final key = DigestNotificationKeys.dateKey(date);
+    final storedDate = _storage.read<String>(AppKeys.keyLastDeliveredDigestDate);
+    if (storedDate == key) return true;
+    final urgentId = DigestNotificationKeys.urgentId(date);
+    final warningId = DigestNotificationKeys.warningId(date);
+    final lastUrgent = _deduplicationService.getLastNotified(urgentId);
+    final lastWarning = _deduplicationService.getLastNotified(warningId);
+    if (lastUrgent != null && calculateCalendarDaysRemaining(date, lastUrgent) == 0) {
+      return true;
+    }
+    if (lastWarning != null && calculateCalendarDaysRemaining(date, lastWarning) == 0) {
+      return true;
+    }
+    return false;
+  }
+
+  /// Marks today's digest as delivered in persistent storage.
+  void markDigestDeliveredToday(DateTime date) {
+    final key = DigestNotificationKeys.dateKey(date);
+    _storage.write(AppKeys.keyLastDeliveredDigestDate, key);
+  }
+
+  /// Cancels today's pending local digest when an FCM server push has arrived for today.
+  Future<void> cancelTodayLocalDigest(DateTime date) async {
+    final urgentId = DigestNotificationKeys.urgentId(date);
+    final warningId = DigestNotificationKeys.warningId(date);
+    await LocalNotificationServices.cancelNotification(urgentId);
+    await LocalNotificationServices.cancelNotification(warningId);
+    markDigestDeliveredToday(date);
+    log('[NOTIF] Cancelled pending local digest for date $date (FCM push arrived)');
   }
 
   /// Schedules or reconciles reminders for a single [product] by running reconciliation.
@@ -186,10 +212,12 @@ class ProductNotificationCoordinator {
   /// Reconciles all loaded products against the category digest notification schedule.
   ///
   /// Guarantees idempotency: running 10 times leaves the exact same pending set.
-  /// Cancels any scheduled notification that is no longer valid or has moved out of window.
+  /// Pre-schedules digests for the next 7 days at `storeOpeningTime - notifyLeadMinutes` local time.
   Future<int> reconcileProducts(
     List<InventoryModel> products, {
     DateTime? referenceTime,
+    String? storeOpeningTime,
+    int? notifyLeadMinutes,
     bool syncHistory = true,
     Future<void> Function({
       required String title,
@@ -199,8 +227,15 @@ class ProductNotificationCoordinator {
     logToFirestore,
   }) async {
     final now = referenceTime ?? DateTime.now();
+    final effectiveOpeningTime = storeOpeningTime ??
+        _storage.read<String>(AppKeys.keyStoreOpeningTime) ??
+        '10:00';
+    final effectiveLeadMinutes = notifyLeadMinutes ??
+        _storage.read<int>(AppKeys.keyNotifyLeadMinutes) ??
+        90;
+
     log(
-      '[NOTIF] Reconcile start: evaluating ${products.length} products at $now',
+      '[NOTIF] Reconcile start: evaluating ${products.length} products at $now (opening=$effectiveOpeningTime, lead=${effectiveLeadMinutes}m)',
     );
 
     int deliveredCount = 0;
@@ -229,91 +264,82 @@ class ProductNotificationCoordinator {
       }
     }
 
-    // 2. Handle TODAY's Urgent items
-    if (urgentToday.isNotEmpty) {
-      final urgentDigest = buildUrgentDigest(urgentToday);
-      final urgentId = DigestNotificationKeys.urgentId(now);
+    // 2. Evaluate TODAY's digest fire time
+    final todayFireTime = computeDigestFireTime(
+      date: now,
+      storeOpeningTime: effectiveOpeningTime,
+      notifyLeadMinutes: effectiveLeadMinutes,
+    );
+    final todayDateKey = DigestNotificationKeys.dateKey(now);
+    final urgentId = DigestNotificationKeys.urgentId(now);
+    final warningId = DigestNotificationKeys.warningId(now);
 
-      // Check deduplication (120 min throttle)
-      final lastNotified = _deduplicationService.getLastNotified(urgentId);
-      final canNotifyNow =
-          lastNotified == null || now.difference(lastNotified).inMinutes >= 120;
+    final bool isFireTimeInFuture = now.isBefore(todayFireTime);
 
-      if (canNotifyNow) {
-        await LocalNotificationServices.showSimpleNotification(
-          urgentDigest.title,
-          urgentDigest.body,
-          'dashboard_urgent',
-          id: urgentId,
-        );
-        await _deduplicationService.recordNotification(urgentId, now);
-        deliveredCount++;
-        if (logToFirestore != null) {
-          await logToFirestore(
-            title: urgentDigest.title,
-            body: urgentDigest.body,
-            userId: urgentToday.first.userId,
-          );
-        }
-        log(
-          '[NOTIF] Delivered immediate urgent digest ID=$urgentId ("${urgentDigest.body}")',
-        );
-      } else {
-        log(
-          '[NOTIF] Throttled immediate urgent digest ID=$urgentId (sent within last 120m)',
-        );
-      }
-
-      // Pre-schedule 2-hour slots for the remainder of today (before midnight)
-      var nextSlot = now.add(const Duration(hours: 2));
-      int slotIndex = 1;
-      while (nextSlot.day == now.day && slotIndex <= 12) {
-        final slotId = DigestNotificationKeys.urgentSlotId(now, slotIndex);
-        expectedNotificationIds.add(slotId);
+    if (isFireTimeInFuture) {
+      // Fire time is in the future today: schedule both urgent and warning digests for todayFireTime
+      if (urgentToday.isNotEmpty) {
+        final urgentDigest = buildUrgentDigest(urgentToday);
+        expectedNotificationIds.add(urgentId);
         await LocalNotificationServices.scheduleProductNotification(
-          id: slotId,
+          id: urgentId,
           title: urgentDigest.title,
           body: urgentDigest.body,
-          scheduledDate: nextSlot,
+          scheduledDate: todayFireTime,
           payload: 'dashboard_urgent',
           referenceTime: now,
         );
         log(
-          '[NOTIF] Scheduled urgent slot $slotIndex at $nextSlot (ID=$slotId)',
+          '[NOTIF] Scheduled urgent digest for today at $todayFireTime (ID=$urgentId): "${urgentDigest.body}"',
         );
-        nextSlot = nextSlot.add(const Duration(hours: 2));
-        slotIndex++;
       }
-    }
-
-    // 3. Handle TODAY's Warning items
-    if (warningToday.isNotEmpty) {
-      final warningDigest = buildWarningDigest(warningToday, now);
-      final warningId = DigestNotificationKeys.warningId(now);
-
-      final today9am = DateTime(now.year, now.month, now.day, 9, 0);
-      if (now.isBefore(today9am)) {
-        // Before 09:00 AM today: schedule for 09:00 today
+      if (warningToday.isNotEmpty) {
+        final warningDigest = buildWarningDigest(warningToday, now);
         expectedNotificationIds.add(warningId);
         await LocalNotificationServices.scheduleProductNotification(
           id: warningId,
           title: warningDigest.title,
           body: warningDigest.body,
-          scheduledDate: today9am,
+          scheduledDate: todayFireTime,
           payload: 'warning_attention',
           referenceTime: now,
         );
         log(
-          '[NOTIF] Scheduled warning digest for 09:00 today (ID=$warningId): "${warningDigest.body}"',
+          '[NOTIF] Scheduled warning digest for today at $todayFireTime (ID=$warningId): "${warningDigest.body}"',
         );
-      } else {
-        // At or after 09:00 AM today: show immediate if not already notified today
-        final lastNotified = _deduplicationService.getLastNotified(warningId);
-        final notifiedToday =
-            lastNotified != null &&
-            calculateCalendarDaysRemaining(now, lastNotified) == 0;
+      }
+    } else {
+      // Fire time for today has already passed!
+      // DO NOT fire immediately on app open unless it's a catch-up
+      // (user opens app after fire time AND digest for today was never delivered)
+      final bool alreadyDelivered = isDigestDeliveredToday(now);
 
-        if (!notifiedToday) {
+      if (!alreadyDelivered) {
+        // Catch-up: deliver immediate notification labeled clearly
+        if (urgentToday.isNotEmpty) {
+          final urgentDigest = buildUrgentDigest(urgentToday, isCatchUp: true);
+          await LocalNotificationServices.showSimpleNotification(
+            urgentDigest.title,
+            urgentDigest.body,
+            'dashboard_urgent',
+            id: urgentId,
+          );
+          await _deduplicationService.recordNotification(urgentId, now);
+          deliveredCount++;
+          if (logToFirestore != null) {
+            await logToFirestore(
+              title: urgentDigest.title,
+              body: urgentDigest.body,
+              userId: urgentToday.first.userId,
+            );
+          }
+          log(
+            '[NOTIF] Delivered catch-up urgent digest for today (ID=$urgentId): "${urgentDigest.body}"',
+          );
+        }
+
+        if (warningToday.isNotEmpty) {
+          final warningDigest = buildWarningDigest(warningToday, now, isCatchUp: true);
           await LocalNotificationServices.showSimpleNotification(
             warningDigest.title,
             warningDigest.body,
@@ -330,33 +356,34 @@ class ProductNotificationCoordinator {
             );
           }
           log(
-            '[NOTIF] Delivered immediate warning digest for today (ID=$warningId): "${warningDigest.body}"',
+            '[NOTIF] Delivered catch-up warning digest for today (ID=$warningId): "${warningDigest.body}"',
           );
-        } else {
-          log('[NOTIF] Warning digest ID=$warningId already delivered today');
         }
+
+        markDigestDeliveredToday(now);
+      } else {
+        log(
+          '[NOTIF] Digest for today ($todayDateKey) already delivered. Skipping immediate notification on app open.',
+        );
       }
     }
 
-    // 4. Pre-schedule digests for the next 7 days (Days 1 to 7 at 09:00)
-    // Only products currently within the candidate window (not safe or expired today) are pre-scheduled.
-    final candidateProducts =
-        products.where((p) {
-          final daysToday = calculateCalendarDaysRemaining(
-            p.expiryDate.toDate(),
-            now,
-          );
-          return !ExpiryPolicy.isSafe(daysToday) &&
-              !ExpiryPolicy.isExpired(daysToday);
-        }).toList();
+    // 3. Pre-schedule digests for the next 7 days at storeOpeningTime - notifyLeadMinutes local time
+    final candidateProducts = products.where((p) {
+      final daysToday = calculateCalendarDaysRemaining(
+        p.expiryDate.toDate(),
+        now,
+      );
+      return !ExpiryPolicy.isSafe(daysToday) &&
+          !ExpiryPolicy.isExpired(daysToday);
+    }).toList();
 
     for (int dayOffset = 1; dayOffset <= 7; dayOffset++) {
-      final fireDate = DateTime(
-        now.year,
-        now.month,
-        now.day + dayOffset,
-        9, // 09:00 AM local
-        0,
+      final futureDate = now.add(Duration(days: dayOffset));
+      final fireDate = computeDigestFireTime(
+        date: futureDate,
+        storeOpeningTime: effectiveOpeningTime,
+        notifyLeadMinutes: effectiveLeadMinutes,
       );
 
       final urgentAtFire = <InventoryModel>[];
@@ -376,10 +403,10 @@ class ProductNotificationCoordinator {
 
       if (urgentAtFire.isNotEmpty) {
         final urgentDigest = buildUrgentDigest(urgentAtFire);
-        final urgentId = DigestNotificationKeys.urgentId(fireDate);
-        expectedNotificationIds.add(urgentId);
+        final futureUrgentId = DigestNotificationKeys.urgentId(fireDate);
+        expectedNotificationIds.add(futureUrgentId);
         await LocalNotificationServices.scheduleProductNotification(
-          id: urgentId,
+          id: futureUrgentId,
           title: urgentDigest.title,
           body: urgentDigest.body,
           scheduledDate: fireDate,
@@ -387,16 +414,16 @@ class ProductNotificationCoordinator {
           referenceTime: now,
         );
         log(
-          '[NOTIF] Pre-scheduled urgent digest for $fireDate (ID=$urgentId): "${urgentDigest.body}"',
+          '[NOTIF] Pre-scheduled urgent digest for $fireDate (ID=$futureUrgentId): "${urgentDigest.body}"',
         );
       }
 
       if (warningAtFire.isNotEmpty) {
         final warningDigest = buildWarningDigest(warningAtFire, fireDate);
-        final warningId = DigestNotificationKeys.warningId(fireDate);
-        expectedNotificationIds.add(warningId);
+        final futureWarningId = DigestNotificationKeys.warningId(fireDate);
+        expectedNotificationIds.add(futureWarningId);
         await LocalNotificationServices.scheduleProductNotification(
-          id: warningId,
+          id: futureWarningId,
           title: warningDigest.title,
           body: warningDigest.body,
           scheduledDate: fireDate,
@@ -404,12 +431,12 @@ class ProductNotificationCoordinator {
           referenceTime: now,
         );
         log(
-          '[NOTIF] Pre-scheduled warning digest for $fireDate (ID=$warningId): "${warningDigest.body}"',
+          '[NOTIF] Pre-scheduled warning digest for $fireDate (ID=$futureWarningId): "${warningDigest.body}"',
         );
       }
     }
 
-    // 5. Cancel any pending notifications that are no longer valid or expected
+    // 4. Cancel any pending notifications that are no longer valid or expected
     final pendingRequests =
         await LocalNotificationServices.getPendingNotifications();
     for (final request in pendingRequests) {
@@ -422,7 +449,7 @@ class ProductNotificationCoordinator {
       }
     }
 
-    // 6. Sync in-app notification history in Cloud Firestore
+    // 5. Sync in-app notification history in Cloud Firestore
     if (syncHistory && products.isNotEmpty) {
       final userId = products.first.userId;
       if (userId.isNotEmpty) {
@@ -442,6 +469,61 @@ class ProductNotificationCoordinator {
       '[NOTIF] Reconcile complete. Active pending IDs count: ${expectedNotificationIds.length}',
     );
     return deliveredCount;
+  }
+
+  /// Diagnostic helper: Schedules a test digest notification exactly 1 minute in the future.
+  Future<void> scheduleTestDigestInOneMinute(List<InventoryModel> products) async {
+    final now = DateTime.now();
+    final fireTime = now.add(const Duration(minutes: 1));
+    log('[NOTIF] Scheduling debug test digest for 1 minute from now: $fireTime');
+
+    final urgent = products.where((p) {
+      final days = calculateCalendarDaysRemaining(p.expiryDate.toDate(), fireTime);
+      return ExpiryPolicy.isUrgent(days);
+    }).toList();
+
+    final warning = products.where((p) {
+      final days = calculateCalendarDaysRemaining(p.expiryDate.toDate(), fireTime);
+      return ExpiryPolicy.isWarning(days);
+    }).toList();
+
+    if (urgent.isNotEmpty) {
+      final digest = buildUrgentDigest(urgent);
+      final id = generateStableNotificationId('test_urgent_${now.millisecondsSinceEpoch}');
+      await LocalNotificationServices.scheduleProductNotification(
+        id: id,
+        title: '[TEST] ${digest.title}',
+        body: digest.body,
+        scheduledDate: fireTime,
+        payload: 'dashboard_urgent',
+      );
+      log('[NOTIF] Scheduled test urgent digest: $id');
+    }
+
+    if (warning.isNotEmpty) {
+      final digest = buildWarningDigest(warning, fireTime);
+      final id = generateStableNotificationId('test_warning_${now.millisecondsSinceEpoch}');
+      await LocalNotificationServices.scheduleProductNotification(
+        id: id,
+        title: '[TEST] ${digest.title}',
+        body: digest.body,
+        scheduledDate: fireTime,
+        payload: 'warning_attention',
+      );
+      log('[NOTIF] Scheduled test warning digest: $id');
+    }
+
+    if (urgent.isEmpty && warning.isEmpty) {
+      final id = generateStableNotificationId('test_sample_${now.millisecondsSinceEpoch}');
+      await LocalNotificationServices.scheduleProductNotification(
+        id: id,
+        title: '[TEST] Expiry Digest Preview',
+        body: 'All products safe! Store opening digest test successful.',
+        scheduledDate: fireTime,
+        payload: 'dashboard_urgent',
+      );
+      log('[NOTIF] Scheduled sample test digest: $id');
+    }
   }
 
   /// Processes the periodic background check (WorkManager worker execution)

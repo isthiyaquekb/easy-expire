@@ -1,6 +1,7 @@
 import 'package:easyexpire/feature/dashboard/view/dashboard.dart';
 import 'package:easyexpire/feature/home/view/home_page.dart';
 import 'package:easyexpire/feature/inventory/view/add_new_product_screen.dart';
+import 'package:easyexpire/feature/login/view/forgot_password_screen.dart';
 import 'package:easyexpire/feature/login/view/login_page.dart';
 import 'package:easyexpire/feature/login/view/signup_page.dart';
 import 'package:easyexpire/feature/notification/view/notification_page.dart';
@@ -13,6 +14,9 @@ import 'package:easyexpire/feature/splash/view/splash_screen.dart';
 import 'package:flutter/material.dart';
 
 abstract class AppRoutes {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
   static const splash = '/';
   static const onBoard = '/on-board';
   static const dashboard = '/dashboard';
@@ -44,6 +48,10 @@ abstract class AppRoutes {
         return MaterialPageRoute(builder: (context) => const LoginPage());
       case signUp:
         return MaterialPageRoute(builder: (context) => const SignupPage());
+      case forgotPassword:
+        return MaterialPageRoute(
+          builder: (context) => const ForgotPasswordScreen(),
+        );
       case dashboard:
         return MaterialPageRoute(builder: (context) => const Dashboard());
       case home:

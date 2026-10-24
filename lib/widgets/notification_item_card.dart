@@ -79,7 +79,6 @@ class NotificationItemCard extends StatelessWidget {
         icon = Icons.local_shipping_outlined;
         break;
       case NotificationType.general:
-      default:
         borderColor = AppColors.notificationBorderGeneral;
         icon = Icons.info_outline;
         break;

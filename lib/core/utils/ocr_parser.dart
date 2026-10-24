@@ -307,8 +307,9 @@ abstract class OcrParser {
   static bool _isIgnoredBatchWord(String word) {
     if (RegExp(r'\d').hasMatch(word)) return false;
     final clean = word.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
-    if (clean.length <= 1)
+    if (clean.length <= 1) {
       return true; // Ignore single letters or purely non-alpha
+    }
     return _ignoredBatchWords.contains(clean);
   }
 
@@ -633,8 +634,9 @@ abstract class OcrParser {
   /// leading letter (e.g. "o9639900", likely a barcode/reference fragment),
   /// are penalized so they lose to a proper candidate when both are present.
   static double _shapePenalty(String token) {
-    if (RegExp(r'^[A-Za-z]{1,2}\d{2,5}$').hasMatch(token))
+    if (RegExp(r'^[A-Za-z]{1,2}\d{2,5}$').hasMatch(token)) {
       return 0; // e.g. A1398
+    }
     if (RegExp(r'^[A-Za-z]\d{5,}$').hasMatch(token)) return 20; // e.g. o9639900
     if (RegExp(r'^\d+[A-Za-z]{1,2}$').hasMatch(token)) return 10; // e.g. 1398A
     return 15; // interleaved / irregular shape

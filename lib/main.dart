@@ -1,22 +1,29 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/core/constant/app_theme.dart';
+import 'package:easyexpire/core/services/background_service.dart';
+import 'package:easyexpire/core/services/fcm_service.dart';
 import 'package:easyexpire/core/services/firebase_services.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
+import 'package:easyexpire/core/services/product_notification_coordinator.dart';
 import 'package:easyexpire/core/theme/theme_view_model.dart';
 import 'package:easyexpire/feature/dashboard/viewmodel/dashboard_provider.dart';
 import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
+import 'package:easyexpire/feature/inventory/model/inventory_model.dart';
 import 'package:easyexpire/feature/inventory/view_model/inventory_view_model.dart';
 import 'package:easyexpire/feature/login/viewmodel/auth_viewmodel.dart';
+import 'package:easyexpire/feature/notification/viewmodel/notification_viewmodel.dart';
 import 'package:easyexpire/feature/onboard/view_model/onboarding_view_model.dart';
 import 'package:easyexpire/feature/profile/viewmodel/profile_viewmodel.dart';
 import 'package:easyexpire/feature/settings/viewmodel/settings_viewmodel.dart';
 import 'package:easyexpire/feature/splash/view_model/splash_provider.dart';
-import 'package:easyexpire/feature/notification/viewmodel/notification_viewmodel.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
-
-import 'package:easyexpire/core/services/background_service.dart';
 import 'package:toastification/toastification.dart';
 
 void main() async {
@@ -25,6 +32,15 @@ void main() async {
   await FirebaseServices().initializeFirebase();
   await LocalNotificationServices.init();
   await BackgroundService.initialize();
+  await FcmService().initialize(
+    onNotificationTap: (RemoteMessage message) {
+      log('[NOTIF] FCM tap handler received: ${message.data}');
+      _handleNotificationNavigation(
+        message.data['payload'] ?? message.data['category'],
+      );
+    },
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -44,16 +60,74 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+void _handleNotificationNavigation(String? payload) {
+  final nav = AppRoutes.navigatorKey.currentState;
+  if (nav == null) return;
+  if (payload == 'dashboard_urgent' || payload == 'warning_attention') {
+    nav.pushNamed(AppRoutes.notification);
+  }
+}
+
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Listen to local notification tap events
+    LocalNotificationServices.onClickNotification.stream.listen((payload) {
+      log('[NOTIF] Local notification clicked with payload: $payload');
+      _handleNotificationNavigation(payload);
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      log('[NOTIF] App resumed: checking and reconciling notifications');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        FirebaseFirestore.instance
+            .collection('products')
+            .where('user_id', isEqualTo: user.uid)
+            .get()
+            .then((snap) {
+              final products =
+                  snap.docs
+                      .map(
+                        (doc) =>
+                            InventoryModel.fromMap(doc.data(), docId: doc.id),
+                      )
+                      .toList();
+              ProductNotificationCoordinator().reconcileProducts(products);
+            })
+            .catchError((err) {
+              log('[NOTIF] Error during resume reconciliation: $err');
+            });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeViewModel>(
       builder:
           (context, themeVm, child) => MaterialApp(
             title: 'Easy Expire',
+            navigatorKey: AppRoutes.navigatorKey,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeVm.themeMode,

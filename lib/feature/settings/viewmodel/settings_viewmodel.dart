@@ -4,12 +4,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easyexpire/core/constant/app_keys.dart';
 import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/core/services/ringtone_services.dart';
+import 'package:easyexpire/feature/inventory/model/inventory_model.dart';
 import 'package:easyexpire/feature/settings/model/ringtone_model.dart';
 import 'package:easyexpire/utils/Permissions/app_permissions.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
 import 'package:easyexpire/core/services/notification_deduplication_service.dart';
+import 'package:easyexpire/core/services/product_notification_coordinator.dart';
+import 'package:easyexpire/core/utils/expiry_date_calculator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:get_storage/get_storage.dart';
 
 class SettingsViewmodel extends ChangeNotifier {
@@ -37,16 +41,39 @@ class SettingsViewmodel extends ChangeNotifier {
   int _leadDays = 3;
   int get leadDays => _leadDays;
 
+  String _storeOpeningTime = '10:00';
+  String get storeOpeningTime => _storeOpeningTime;
+
+  int _notifyLeadMinutes = 90;
+  int get notifyLeadMinutes => _notifyLeadMinutes;
+
+  String _timezone = 'UTC';
+  String get timezone => _timezone;
+
   String _selectedRingtone = 'Default (System)';
   String get selectedRingtone => _selectedRingtone;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  /// Human-readable digest fire time based on opening time and lead minutes.
+  String get calculatedDigestTimeDisplay {
+    final now = DateTime.now();
+    final fireTime = computeDigestFireTime(
+      date: now,
+      storeOpeningTime: _storeOpeningTime,
+      notifyLeadMinutes: _notifyLeadMinutes,
+    );
+    final hour = fireTime.hour.toString().padLeft(2, '0');
+    final minute = fireTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute ($_notifyLeadMinutes min before opening at $_storeOpeningTime)';
+  }
+
   void initialize() async {
     _loadInitialPermissionState();
     _loadPreferences();
     loadRingtones();
+    _resolveTimezone();
   }
 
   Future<void> _loadInitialPermissionState() async {
@@ -61,7 +88,110 @@ class SettingsViewmodel extends ChangeNotifier {
     _leadDays = storage.read<int>(AppKeys.keyLeadDays) ?? 3;
     _selectedRingtone =
         storage.read<String>(AppKeys.keySelectedRingtone) ?? 'Default (System)';
+    _storeOpeningTime =
+        storage.read<String>(AppKeys.keyStoreOpeningTime) ?? '10:00';
+    _notifyLeadMinutes =
+        storage.read<int>(AppKeys.keyNotifyLeadMinutes) ?? 90;
+    _timezone = storage.read<String>(AppKeys.keyTimezone) ?? 'UTC';
     notifyListeners();
+  }
+
+  Future<void> _resolveTimezone() async {
+    try {
+      final tz = await FlutterTimezone.getLocalTimezone();
+      _timezone = tz;
+      final storage = GetStorage();
+      await storage.write(AppKeys.keyTimezone, tz);
+      notifyListeners();
+    } catch (e) {
+      log('Could not resolve timezone in SettingsViewmodel: $e');
+    }
+  }
+
+  Future<void> setStoreOpeningTime(String time) async {
+    _storeOpeningTime = time;
+    notifyListeners();
+    final storage = GetStorage();
+    await storage.write(AppKeys.keyStoreOpeningTime, time);
+
+    final user = auth.currentUser;
+    if (user != null) {
+      try {
+        await firestore.collection('Users').doc(user.uid).set({
+          'storeOpeningTime': time,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        log('[NOTIF] Synced storeOpeningTime ($time) to Users/${user.uid}');
+      } catch (e) {
+        log('Error syncing storeOpeningTime to Firestore: $e');
+      }
+    }
+
+    await _rescheduleDigests();
+  }
+
+  Future<void> setNotifyLeadMinutes(int minutes) async {
+    _notifyLeadMinutes = minutes;
+    notifyListeners();
+    final storage = GetStorage();
+    await storage.write(AppKeys.keyNotifyLeadMinutes, minutes);
+
+    final user = auth.currentUser;
+    if (user != null) {
+      try {
+        await firestore.collection('Users').doc(user.uid).set({
+          'notifyLeadMinutes': minutes,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        log('[NOTIF] Synced notifyLeadMinutes ($minutes) to Users/${user.uid}');
+      } catch (e) {
+        log('Error syncing notifyLeadMinutes to Firestore: $e');
+      }
+    }
+
+    await _rescheduleDigests();
+  }
+
+  Future<void> _rescheduleDigests() async {
+    final user = auth.currentUser;
+    if (user == null) return;
+    try {
+      final snap = await firestore
+          .collection('products')
+          .where('user_id', isEqualTo: user.uid)
+          .get();
+      final products = snap.docs
+          .map((doc) => InventoryModel.fromMap(doc.data(), docId: doc.id))
+          .toList();
+
+      await ProductNotificationCoordinator().reconcileProducts(
+        products,
+        storeOpeningTime: _storeOpeningTime,
+        notifyLeadMinutes: _notifyLeadMinutes,
+      );
+      log('[NOTIF] Re-scheduled digests with opening=$_storeOpeningTime, lead=$_notifyLeadMinutes');
+    } catch (e) {
+      log('[NOTIF] Error re-scheduling digests on settings change: $e');
+    }
+  }
+
+  Future<void> scheduleTestDigestInOneMinute() async {
+    final user = auth.currentUser;
+    List<InventoryModel> products = [];
+    if (user != null) {
+      try {
+        final snap = await firestore
+            .collection('products')
+            .where('user_id', isEqualTo: user.uid)
+            .get();
+        products = snap.docs
+            .map((doc) => InventoryModel.fromMap(doc.data(), docId: doc.id))
+            .toList();
+      } catch (e) {
+        log('[NOTIF] Error loading products for test digest: $e');
+      }
+    }
+    await ProductNotificationCoordinator().scheduleTestDigestInOneMinute(products);
   }
 
   Future<void> setLeadDays(int days) async {
@@ -256,32 +386,40 @@ class SettingsViewmodel extends ChangeNotifier {
   Future<void> _executeAccountDeletion(BuildContext context, User user) async {
     final uid = user.uid;
 
-    // 1. Cascade delete products
+    // 1. Cascade delete products (field is 'user_id')
     final productsSnapshot =
         await firestore
             .collection('products')
-            .where('userId', isEqualTo: uid)
+            .where('user_id', isEqualTo: uid)
             .get();
-    final batch = firestore.batch();
-    for (var doc in productsSnapshot.docs) {
-      batch.delete(doc.reference);
-    }
 
-    // 2. Cascade delete notifications
+    // 2. Cascade delete notifications (subcollection Users/{uid}/notifications)
     final notificationsSnapshot =
         await firestore
+            .collection('Users')
+            .doc(uid)
             .collection('notifications')
-            .where('recipientId', isEqualTo: uid)
             .get();
-    for (var doc in notificationsSnapshot.docs) {
-      batch.delete(doc.reference);
+
+    // 3. User profile doc in 'Users' (uppercase 'U')
+    final userDocRef = firestore.collection('Users').doc(uid);
+
+    // Commit deletions in batches (max 400 operations per batch to stay under Firestore 500 limit)
+    final allRefs = [
+      ...productsSnapshot.docs.map((d) => d.reference),
+      ...notificationsSnapshot.docs.map((d) => d.reference),
+      userDocRef,
+    ];
+
+    for (var i = 0; i < allRefs.length; i += 400) {
+      final end = (i + 400 < allRefs.length) ? i + 400 : allRefs.length;
+      final chunk = allRefs.sublist(i, end);
+      final batch = firestore.batch();
+      for (var ref in chunk) {
+        batch.delete(ref);
+      }
+      await batch.commit();
     }
-
-    // 3. Delete user profile doc
-    final userDocRef = firestore.collection('users').doc(uid);
-    batch.delete(userDocRef);
-
-    await batch.commit();
 
     // 4. Delete Auth user
     await user.delete();

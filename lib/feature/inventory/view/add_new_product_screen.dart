@@ -7,12 +7,10 @@ import 'package:easyexpire/feature/inventory/view/ocr_scanner_screen.dart';
 import 'package:easyexpire/feature/inventory/view_model/inventory_view_model.dart';
 import 'package:easyexpire/widgets/app_primary_button.dart';
 import 'package:easyexpire/widgets/common_app_text.dart';
-import 'package:easyexpire/widgets/common_button.dart';
 import 'package:easyexpire/widgets/custom_text_field.dart';
 import 'package:easyexpire/widgets/labeled_divider.dart';
 import 'package:easyexpire/widgets/outlined_icon_button.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AddNewProductScreen extends StatelessWidget {
@@ -126,7 +124,7 @@ class AddNewProductScreen extends StatelessWidget {
                                   if (scannedBarcode != null &&
                                       scannedBarcode is String) {
                                     log(
-                                      "BARCODE FOUND======>:${scannedBarcode}",
+                                      "BARCODE FOUND======>:$scannedBarcode",
                                     );
                                     provider.setBarCode(scannedBarcode);
                                   }

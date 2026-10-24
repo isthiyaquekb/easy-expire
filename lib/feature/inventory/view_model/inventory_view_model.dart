@@ -127,7 +127,9 @@ class InventoryViewModel extends ChangeNotifier {
       lastDate: DateTime(2040),
     );
 
-    if (pickedDate != null && pickedDate != currentDate) {
+    if (pickedDate == null) return;
+
+    if (pickedDate != currentDate) {
       combineDateWithCurrentTime(pickedDate);
     }
 
@@ -135,8 +137,8 @@ class InventoryViewModel extends ChangeNotifier {
 
     selectedDate = DateFormat('dd/MM/yyyy').format(currentDate);
     _dateController.text = selectedDate;
-    calculateDaysRemaining(pickedDate!, DateTime.now());
-    print("CURRENT DATE SELECTED :$selectedDate");
+    calculateDaysRemaining(pickedDate, DateTime.now());
+    log("CURRENT DATE SELECTED :$selectedDate");
 
     notifyListeners();
   }

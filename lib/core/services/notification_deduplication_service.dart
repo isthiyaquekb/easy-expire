@@ -11,6 +11,8 @@ class NotificationDeduplicationService {
   NotificationDeduplicationService({GetStorage? storage})
     : _storage = storage ?? GetStorage();
 
+  GetStorage get storage => _storage;
+
   String _buildKey(int notificationId) => '$_keyPrefix$notificationId';
 
   /// Retrieves the timestamp when [notificationId] was last shown or scheduled,

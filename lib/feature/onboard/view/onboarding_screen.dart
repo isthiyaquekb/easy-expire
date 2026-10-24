@@ -1,5 +1,3 @@
-import 'package:easyexpire/core/constant/app_assets.dart';
-import 'package:easyexpire/core/constant/app_routes.dart';
 import 'package:easyexpire/feature/onboard/view_model/onboarding_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

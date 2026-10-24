@@ -193,3 +193,68 @@ int generateStableNotificationId(String key) {
   // Android NotificationManager and iOS UNUserNotificationCenter.
   return hash & 0x7FFFFFFF;
 }
+
+/// Computes the local digest fire time on [date] given [storeOpeningTime] (e.g. "10:00")
+/// and [notifyLeadMinutes] (e.g. 90 minutes).
+DateTime computeDigestFireTime({
+  required DateTime date,
+  String storeOpeningTime = '10:00',
+  int notifyLeadMinutes = 90,
+}) {
+  int hour = 10;
+  int minute = 0;
+  final parts = storeOpeningTime.split(':');
+  if (parts.length >= 2) {
+    hour = int.tryParse(parts[0].trim()) ?? 10;
+    minute = int.tryParse(parts[1].trim()) ?? 0;
+  }
+  final baseTime = DateTime(date.year, date.month, date.day, hour, minute);
+  return baseTime.subtract(Duration(minutes: notifyLeadMinutes));
+}
+
+/// Formats the Urgent Digest title.
+String formatUrgentDigestTitle(int count, {bool isCatchUp = false}) {
+  final prefix = isCatchUp ? '[Catch-up] ' : '';
+  if (count <= 1) {
+    return '${prefix}Pull before opening: 1 item expires today';
+  }
+  return '${prefix}Pull before opening: $count items expire today';
+}
+
+/// Formats the Urgent Digest body (< 100 chars for lock screen).
+String formatUrgentDigestBody(List<String> productNames) {
+  if (productNames.isEmpty) return '';
+  if (productNames.length == 1) {
+    return '${productNames.first} expires today';
+  }
+  final top3 = productNames.take(3).join(', ');
+  final remaining = productNames.length - 3;
+  if (remaining > 0) {
+    return '$top3 +$remaining more';
+  }
+  return top3;
+}
+
+/// Formats the Warning Digest title.
+String formatWarningDigestTitle(int count, {bool isCatchUp = false}) {
+  final prefix = isCatchUp ? '[Catch-up] ' : '';
+  if (count <= 1) {
+    return '${prefix}Check stock: 1 item expires within ${ExpiryPolicy.warningWindowDays} days';
+  }
+  return '${prefix}Check stock: $count items expire within ${ExpiryPolicy.warningWindowDays} days';
+}
+
+/// Formats the Warning Digest body (< 100 chars for lock screen).
+String formatWarningDigestBody({
+  required int count,
+  required String nearestName,
+  required int nearestDays,
+}) {
+  if (count <= 1) {
+    final daysText = nearestDays == 1 ? 'tomorrow' : 'in $nearestDays days';
+    return '$nearestName expires $daysText';
+  }
+  final nearestText =
+      nearestDays == 1 ? '$nearestName tomorrow' : '$nearestName in $nearestDays days';
+  return '$count products expire within ${ExpiryPolicy.warningWindowDays} days. Nearest: $nearestText';
+}

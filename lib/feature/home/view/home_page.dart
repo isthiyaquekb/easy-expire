@@ -92,7 +92,7 @@ class HomePage extends StatelessWidget {
               (p) => !expiredItems.contains(p),
             ), // Avoid duplicates
           ]..sort(
-            (a, b) => a.daysLeft!.compareTo(b.daysLeft!),
+            (a, b) => a.daysLeft.compareTo(b.daysLeft),
           ); // Sort by days left, most expired first
 
           // Calculate total quantity strictly for items safe beyond warning window

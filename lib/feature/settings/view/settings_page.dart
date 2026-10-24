@@ -136,6 +136,67 @@ class SettingsPage extends StatelessWidget {
                 trailing: const Icon(Icons.chevron_right, size: 20),
                 onTap: () => _showLeadDaysDialog(context, provider),
               ),
+              ListTile(
+                leading: Icon(Icons.storefront_outlined, color: iconColor),
+                title: Text(
+                  'Store Opening Time',
+                  style: TextStyle(color: theme.colorScheme.onSurface),
+                ),
+                subtitle: Text(
+                  'Store opens at ${provider.storeOpeningTime}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                trailing: const Icon(Icons.chevron_right, size: 20),
+                onTap: () => _showTimePicker(context, provider),
+              ),
+              ListTile(
+                leading: Icon(Icons.alarm_outlined, color: iconColor),
+                title: Text(
+                  'Digest Lead Time',
+                  style: TextStyle(color: theme.colorScheme.onSurface),
+                ),
+                subtitle: Text(
+                  'Deliver ${provider.notifyLeadMinutes} minutes before opening',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                trailing: const Icon(Icons.chevron_right, size: 20),
+                onTap: () => _showLeadMinutesDialog(context, provider),
+              ),
+              ListTile(
+                leading: Icon(Icons.schedule_outlined, color: iconColor),
+                title: Text(
+                  'Digest Schedule',
+                  style: TextStyle(color: theme.colorScheme.onSurface),
+                ),
+                subtitle: Text(
+                  provider.calculatedDigestTimeDisplay,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.public_outlined, color: iconColor),
+                title: Text(
+                  'Store Timezone',
+                  style: TextStyle(color: theme.colorScheme.onSurface),
+                ),
+                subtitle: Text(
+                  provider.timezone,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ),
 
               Divider(
                 color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
@@ -270,6 +331,33 @@ class SettingsPage extends StatelessWidget {
                     );
                   },
                 ),
+                ListTile(
+                  leading: Icon(Icons.alarm_add_outlined, color: iconColor),
+                  title: Text(
+                    'Schedule test digest in 1 minute',
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
+                  subtitle: Text(
+                    'Schedules a local digest notification 60s from now for immediate testing',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  trailing: const Icon(Icons.play_arrow_outlined, size: 20),
+                  onTap: () async {
+                    await provider.scheduleTestDigestInOneMinute();
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          '[NOTIF] Test digest scheduled for 1 minute from now. Close app or lock screen to test delivery!',
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                ),
               ],
 
               const SizedBox(height: 24),
@@ -304,6 +392,58 @@ class SettingsPage extends StatelessWidget {
           color: theme.colorScheme.primary,
         ),
       ),
+    );
+  }
+
+  void _showTimePicker(BuildContext context, SettingsViewmodel provider) async {
+    final parts = provider.storeOpeningTime.split(':');
+    final initialHour = int.tryParse(parts.first) ?? 10;
+    final initialMinute = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initialHour, minute: initialMinute),
+    );
+
+    if (picked != null) {
+      final formatted =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      await provider.setStoreOpeningTime(formatted);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Store opening time updated to $formatted'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showLeadMinutesDialog(BuildContext context, SettingsViewmodel provider) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Digest Lead Time'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [15, 30, 45, 60, 90, 120].map((mins) {
+              return RadioListTile<int>(
+                title: Text('$mins minutes before opening'),
+                value: mins,
+                groupValue: provider.notifyLeadMinutes,
+                onChanged: (val) {
+                  if (val != null) {
+                    provider.setNotifyLeadMinutes(val);
+                    Navigator.of(context).pop();
+                  }
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
   }
 

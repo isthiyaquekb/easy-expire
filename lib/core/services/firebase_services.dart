@@ -7,7 +7,8 @@ import 'package:easyexpire/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_storage/get_storage.dart';
-// import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:easyexpire/core/services/fcm_service.dart';
+import 'package:easyexpire/core/services/local_notification_services.dart';
 
 class FirebaseServices {
   static final FirebaseServices _instance = FirebaseServices._internal();
@@ -66,6 +67,19 @@ class FirebaseServices {
   }
 
   Future<void> appLogout() async {
+    final uid = auth.currentUser?.uid;
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        await FcmService().onLogout(uid);
+      } catch (e) {
+        log("Error unregistering FCM token on logout: $e");
+      }
+    }
+    try {
+      await LocalNotificationServices.cancelAllNotifications();
+    } catch (e) {
+      log("Error cancelling local notifications on logout: $e");
+    }
     auth.signOut();
     log("AUTH O SIGN OUT FIREBASE");
     storageBox.write(AppKeys.keyIsLoggedIn, false);
