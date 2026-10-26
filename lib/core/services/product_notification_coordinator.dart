@@ -28,6 +28,14 @@ class DigestNotificationKeys {
 
   static int warningId(DateTime date) =>
       generateStableNotificationId('digest_warning_${dateKey(date)}');
+
+  static int expiredProductId(String productId) =>
+      generateStableNotificationId('expired_product_$productId');
+
+  static int urgentProductSlotId(String productId, int slotIndex) =>
+      generateStableNotificationId(
+        'urgent_product_${productId}_slot_$slotIndex',
+      );
 }
 
 /// Structured content for digest notifications.
@@ -79,6 +87,86 @@ class ProductNotificationCoordinator {
   NotificationHistoryService get historyService =>
       _historyService ??= NotificationHistoryService();
 
+  /// Returns the current dismissal suppression map (productId -> timestampMs).
+  Map<String, dynamic> _getDismissedMap() {
+    final raw = _storage.read<Map<String, dynamic>>(
+      AppKeys.keyDismissedNotifications,
+    );
+    return raw != null ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+  }
+
+  /// Checks if alerts for [productId] are currently suppressed by a 24-hour dismissal.
+  bool isProductSuppressed(String productId, [DateTime? referenceTime]) {
+    if (productId.isEmpty) return false;
+    final now = referenceTime ?? DateTime.now();
+    final dismissedMap = _getDismissedMap();
+    final ts = dismissedMap[productId];
+    if (ts is int) {
+      final dismissedAt = DateTime.fromMillisecondsSinceEpoch(ts);
+      final elapsed = now.difference(dismissedAt);
+      if (elapsed >= Duration.zero &&
+          elapsed < ExpiryPolicy.dismissalSuppressionDuration) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Records a 24-hour dismissal for [productId] at [timestamp].
+  void recordDismissal(String productId, [DateTime? timestamp]) {
+    if (productId.isEmpty) return;
+    final now = timestamp ?? DateTime.now();
+    final dismissedMap = _getDismissedMap();
+    dismissedMap[productId] = now.millisecondsSinceEpoch;
+    _storage.write(AppKeys.keyDismissedNotifications, dismissedMap);
+    log('[NOTIF] Recorded 24h dismissal for product $productId at $now');
+  }
+
+  /// Clears 24-hour dismissal suppression for [productId].
+  void clearProductSuppression(String productId) {
+    if (productId.isEmpty) return;
+    final dismissedMap = _getDismissedMap();
+    if (dismissedMap.containsKey(productId)) {
+      dismissedMap.remove(productId);
+      _storage.write(AppKeys.keyDismissedNotifications, dismissedMap);
+      log('[NOTIF] Cleared 24h dismissal for product $productId');
+    }
+  }
+
+  /// Policy 6: Resets notification scheduling, throttling, and dismissal state for [productId] only.
+  Future<void> resetProductNotificationState(String productId) async {
+    if (productId.isEmpty) return;
+    clearProductSuppression(productId);
+    final expId = DigestNotificationKeys.expiredProductId(productId);
+    await LocalNotificationServices.cancelNotification(expId);
+    await _deduplicationService.clearRecord(expId);
+
+    for (int slot = 0; slot < 12; slot++) {
+      final slotId = DigestNotificationKeys.urgentProductSlotId(
+        productId,
+        slot,
+      );
+      await LocalNotificationServices.cancelNotification(slotId);
+      await _deduplicationService.clearRecord(slotId);
+    }
+    log('[NOTIF] Reset notification state for product $productId');
+  }
+
+  /// Policy 3: Returns the configured urgent reminder interval for same-day items (2 or 4 hours).
+  int get urgentReminderIntervalHours {
+    final stored = _storage.read<int>(AppKeys.keyUrgentReminderIntervalHours);
+    if (stored == 2 || stored == 4) return stored!;
+    return ExpiryPolicy.defaultUrgentIntervalHours;
+  }
+
+  /// Policy 3: Updates the configured urgent reminder interval for same-day items (2 or 4 hours).
+  void setUrgentReminderIntervalHours(int hours) {
+    if (hours == 2 || hours == 4) {
+      _storage.write(AppKeys.keyUrgentReminderIntervalHours, hours);
+      log('[NOTIF] Set urgent reminder interval to $hours hours');
+    }
+  }
+
   /// Legacy helper deriving a deterministic ID for a single product (used for individual lookups/cancellations).
   int getNotificationId(InventoryModel product) {
     final key =
@@ -93,6 +181,9 @@ class ProductNotificationCoordinator {
     final notifId = getNotificationId(product);
     await LocalNotificationServices.cancelNotification(notifId);
     await _deduplicationService.clearRecord(notifId);
+    if (product.id != null && product.id!.isNotEmpty) {
+      await resetProductNotificationState(product.id!);
+    }
     log(
       '[NOTIF] Cancelled individual product notification for: ${product.productName} (ID: $notifId)',
     );
@@ -242,6 +333,7 @@ class ProductNotificationCoordinator {
     final expectedNotificationIds = <int>{};
 
     // 1. Group products for TODAY
+    final expiredProducts = <InventoryModel>[];
     final urgentToday = <InventoryModel>[];
     final warningToday = <InventoryModel>[];
 
@@ -249,8 +341,9 @@ class ProductNotificationCoordinator {
       final days = calculateCalendarDaysRemaining(p.expiryDate.toDate(), now);
       if (ExpiryPolicy.isExpired(days)) {
         log(
-          '[NOTIF] Product "${p.productName}": days=$days -> EXPIRED (no alerts)',
+          '[NOTIF] Product "${p.productName}": days=$days -> EXPIRED (hourly reminders)',
         );
+        expiredProducts.add(p);
       } else if (ExpiryPolicy.isUrgent(days)) {
         log('[NOTIF] Product "${p.productName}": days=$days -> URGENT');
         urgentToday.add(p);
@@ -264,7 +357,37 @@ class ProductNotificationCoordinator {
       }
     }
 
-    // 2. Evaluate TODAY's digest fire time
+    // 2. Schedule Hourly Reminders for Already-Expired Products (Policy 2)
+    // Excluded from daily digest; suppressed by 24h dismissal if active
+    for (final p in expiredProducts) {
+      final pId = p.id ?? p.productName;
+      if (isProductSuppressed(p.id ?? '', now)) {
+        log(
+          '[NOTIF] Expired product "${p.productName}" suppressed by 24h dismissal',
+        );
+        continue;
+      }
+      final expId = DigestNotificationKeys.expiredProductId(pId);
+      expectedNotificationIds.add(expId);
+      await LocalNotificationServices.showHourlyRepeatedNotification(
+        id: expId,
+        title: 'Product Expired',
+        body:
+            '${p.productName} has expired! Remove from inventory immediately.',
+        payload: 'dashboard_expired',
+      );
+      log(
+        '[NOTIF] Scheduled hourly reminders for expired product "${p.productName}" (ID=$expId)',
+      );
+    }
+
+    // 3. Filter non-suppressed products expiring today for Daily Digest & Urgent Reminders
+    final activeUrgentToday =
+        urgentToday
+            .where((p) => !isProductSuppressed(p.id ?? '', now))
+            .toList();
+
+    // 4. Evaluate TODAY's 08:00 AM digest fire time (Policy 1)
     final todayFireTime = computeDigestFireTime(
       date: now,
       storeOpeningTime: effectiveOpeningTime,
@@ -278,8 +401,8 @@ class ProductNotificationCoordinator {
 
     if (isFireTimeInFuture) {
       // Fire time is in the future today: schedule both urgent and warning digests for todayFireTime
-      if (urgentToday.isNotEmpty) {
-        final urgentDigest = buildUrgentDigest(urgentToday);
+      if (activeUrgentToday.isNotEmpty) {
+        final urgentDigest = buildUrgentDigest(activeUrgentToday);
         expectedNotificationIds.add(urgentId);
         await LocalNotificationServices.scheduleProductNotification(
           id: urgentId,
@@ -316,8 +439,11 @@ class ProductNotificationCoordinator {
 
       if (!alreadyDelivered) {
         // Catch-up: deliver immediate notification labeled clearly
-        if (urgentToday.isNotEmpty) {
-          final urgentDigest = buildUrgentDigest(urgentToday, isCatchUp: true);
+        if (activeUrgentToday.isNotEmpty) {
+          final urgentDigest = buildUrgentDigest(
+            activeUrgentToday,
+            isCatchUp: true,
+          );
           await LocalNotificationServices.showSimpleNotification(
             urgentDigest.title,
             urgentDigest.body,
@@ -330,7 +456,7 @@ class ProductNotificationCoordinator {
             await logToFirestore(
               title: urgentDigest.title,
               body: urgentDigest.body,
-              userId: urgentToday.first.userId,
+              userId: activeUrgentToday.first.userId,
             );
           }
           log(
@@ -339,7 +465,11 @@ class ProductNotificationCoordinator {
         }
 
         if (warningToday.isNotEmpty) {
-          final warningDigest = buildWarningDigest(warningToday, now, isCatchUp: true);
+          final warningDigest = buildWarningDigest(
+            warningToday,
+            now,
+            isCatchUp: true,
+          );
           await LocalNotificationServices.showSimpleNotification(
             warningDigest.title,
             warningDigest.body,
@@ -368,7 +498,46 @@ class ProductNotificationCoordinator {
       }
     }
 
-    // 3. Pre-schedule digests for the next 7 days at storeOpeningTime - notifyLeadMinutes local time
+    // 5. Configurable Same-Day Urgent Reminders for items expiring today (Policy 3)
+    final intervalHours = urgentReminderIntervalHours;
+    for (final p in activeUrgentToday) {
+      final pId = p.id ?? p.productName;
+      final baseFire = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        ExpiryPolicy.dailyDigestHour,
+        ExpiryPolicy.dailyDigestMinute,
+      );
+      int slotIndex = 1;
+      DateTime slotTime = baseFire.add(
+        Duration(hours: intervalHours * slotIndex),
+      );
+      while (slotTime.day == now.day && slotTime.hour < 22) {
+        final slotId = DigestNotificationKeys.urgentProductSlotId(
+          pId,
+          slotIndex,
+        );
+        expectedNotificationIds.add(slotId);
+        if (slotTime.isAfter(now)) {
+          await LocalNotificationServices.scheduleProductNotification(
+            id: slotId,
+            title: 'Product Expires TODAY',
+            body: '${p.productName} is expiring today! Pull from stock.',
+            scheduledDate: slotTime,
+            payload: 'dashboard_urgent',
+            referenceTime: now,
+          );
+          log(
+            '[NOTIF] Scheduled same-day urgent slot $slotIndex ($slotTime) for "${p.productName}" (ID=$slotId)',
+          );
+        }
+        slotIndex++;
+        slotTime = baseFire.add(Duration(hours: intervalHours * slotIndex));
+      }
+    }
+
+    // 6. Pre-schedule digests for the next 7 days at storeOpeningTime - notifyLeadMinutes local time
     final candidateProducts = products.where((p) {
       final daysToday = calculateCalendarDaysRemaining(
         p.expiryDate.toDate(),

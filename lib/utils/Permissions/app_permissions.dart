@@ -19,16 +19,7 @@ class AppPermissions {
   Future<bool> isNotificationPermissionCurrentlyGranted() async {
     final status = await Permission.notification.status;
     log("Current Permission Status Check: $status");
-    if (status.isDenied) {
-      requestNotificationPermission();
-    }
-    if (Platform.isIOS) {
-      return status.isGranted;
-    } else if (Platform.isAndroid) {
-      return status.isGranted;
-    }
-
-    return true;
+    return status.isGranted;
   }
 
   // Request notification permission

@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easyexpire/core/constant/app_keys.dart';
 import 'package:easyexpire/core/constant/app_routes.dart';
+import 'package:easyexpire/core/constant/expiry_policy.dart';
 import 'package:easyexpire/core/services/ringtone_services.dart';
 import 'package:easyexpire/feature/inventory/model/inventory_model.dart';
 import 'package:easyexpire/feature/settings/model/ringtone_model.dart';
@@ -15,6 +16,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsViewmodel extends ChangeNotifier {
   AudioPlayer? _player;
@@ -37,6 +39,12 @@ class SettingsViewmodel extends ChangeNotifier {
 
   bool _isNotificationEnable = false;
   bool get isNotificationEnable => _isNotificationEnable;
+
+  bool _isPermissionDenied = false;
+  bool get isPermissionDenied => _isPermissionDenied;
+
+  int _urgentReminderIntervalHours = ExpiryPolicy.defaultUrgentIntervalHours;
+  int get urgentReminderIntervalHours => _urgentReminderIntervalHours;
 
   int _leadDays = 3;
   int get leadDays => _leadDays;
@@ -80,7 +88,21 @@ class SettingsViewmodel extends ChangeNotifier {
     _isNotificationEnable =
         await AppPermissions.instance
             .isNotificationPermissionCurrentlyGranted();
+    _isPermissionDenied = !_isNotificationEnable;
     notifyListeners();
+  }
+
+  Future<void> refreshPermissionState() async {
+    _isNotificationEnable =
+        await AppPermissions.instance
+            .isNotificationPermissionCurrentlyGranted();
+    _isPermissionDenied = !_isNotificationEnable;
+    notifyListeners();
+  }
+
+  Future<void> openPermissionSettings() async {
+    await openAppSettings();
+    await refreshPermissionState();
   }
 
   void _loadPreferences() {
@@ -93,7 +115,20 @@ class SettingsViewmodel extends ChangeNotifier {
     _notifyLeadMinutes =
         storage.read<int>(AppKeys.keyNotifyLeadMinutes) ?? 90;
     _timezone = storage.read<String>(AppKeys.keyTimezone) ?? 'UTC';
+    _urgentReminderIntervalHours =
+        storage.read<int>(AppKeys.keyUrgentReminderIntervalHours) ??
+        ExpiryPolicy.defaultUrgentIntervalHours;
     notifyListeners();
+  }
+
+  Future<void> setUrgentReminderIntervalHours(int hours) async {
+    if (hours == 2 || hours == 4) {
+      _urgentReminderIntervalHours = hours;
+      notifyListeners();
+      final storage = GetStorage();
+      await storage.write(AppKeys.keyUrgentReminderIntervalHours, hours);
+      await _rescheduleDigests();
+    }
   }
 
   Future<void> _resolveTimezone() async {

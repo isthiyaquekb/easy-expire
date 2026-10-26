@@ -89,6 +89,7 @@ ExpiryNotificationDecision evaluateNotificationSchedule({
   required DateTime expiryDate,
   required DateTime referenceTime,
   DateTime? lastNotifiedAt,
+  int urgentIntervalHours = ExpiryPolicy.defaultUrgentIntervalHours,
 }) {
   final daysRemaining = calculateCalendarDaysRemaining(
     expiryDate,
@@ -130,11 +131,12 @@ ExpiryNotificationDecision evaluateNotificationSchedule({
       );
 
     case ExpiryNotificationTier.zeroDayReminder:
-      // Prevent zero-day notifications from firing more frequently than once every 2 hours
+      // Prevent zero-day notifications from firing more frequently than the configured interval (default 2h / 120m)
+      final requiredMinutes = urgentIntervalHours * 60;
       if (lastNotifiedAt != null) {
         final elapsedMinutes =
             referenceTime.difference(lastNotifiedAt).inMinutes;
-        if (elapsedMinutes < 120) {
+        if (elapsedMinutes < requiredMinutes) {
           return ExpiryNotificationDecision(
             shouldNotify: false,
             tier: tier,
@@ -142,7 +144,7 @@ ExpiryNotificationDecision evaluateNotificationSchedule({
             title: '',
             body: '',
             reason:
-                'Throttled: only $elapsedMinutes min elapsed since last alert (min 120 min)',
+                'Throttled: only $elapsedMinutes min elapsed since last alert (min $requiredMinutes min)',
           );
         }
       }
@@ -167,13 +169,28 @@ ExpiryNotificationDecision evaluateNotificationSchedule({
       );
 
     case ExpiryNotificationTier.expired:
+      // Policy 2: Hourly reminder policy for already-expired products
+      if (lastNotifiedAt != null) {
+        final elapsedMinutes =
+            referenceTime.difference(lastNotifiedAt).inMinutes;
+        if (elapsedMinutes < 60) {
+          return ExpiryNotificationDecision(
+            shouldNotify: false,
+            tier: tier,
+            daysRemaining: daysRemaining,
+            title: '',
+            body: '',
+            reason:
+                'Throttled: only $elapsedMinutes min elapsed since last hourly alert (min 60 min)',
+          );
+        }
+      }
       return ExpiryNotificationDecision(
-        shouldNotify: false,
+        shouldNotify: true,
         tier: tier,
         daysRemaining: daysRemaining,
-        title: '',
-        body: '',
-        reason: 'Product has already expired; cancel future reminders',
+        title: 'Product Expired',
+        body: '$productName has expired! Remove from inventory immediately.',
       );
   }
 }
@@ -194,22 +211,32 @@ int generateStableNotificationId(String key) {
   return hash & 0x7FFFFFFF;
 }
 
-/// Computes the local digest fire time on [date] given [storeOpeningTime] (e.g. "10:00")
-/// and [notifyLeadMinutes] (e.g. 90 minutes).
+/// Computes the local digest fire time on [date].
+/// Defaults to 08:00 AM local time per Policy 1, or computes based on
+/// [storeOpeningTime] and [notifyLeadMinutes] when explicitly provided.
 DateTime computeDigestFireTime({
   required DateTime date,
-  String storeOpeningTime = '10:00',
-  int notifyLeadMinutes = 90,
+  String? storeOpeningTime,
+  int? notifyLeadMinutes,
 }) {
-  int hour = 10;
-  int minute = 0;
-  final parts = storeOpeningTime.split(':');
-  if (parts.length >= 2) {
-    hour = int.tryParse(parts[0].trim()) ?? 10;
-    minute = int.tryParse(parts[1].trim()) ?? 0;
+  if (storeOpeningTime != null && notifyLeadMinutes != null) {
+    int hour = 10;
+    int minute = 0;
+    final parts = storeOpeningTime.split(':');
+    if (parts.length >= 2) {
+      hour = int.tryParse(parts[0].trim()) ?? 10;
+      minute = int.tryParse(parts[1].trim()) ?? 0;
+    }
+    final baseTime = DateTime(date.year, date.month, date.day, hour, minute);
+    return baseTime.subtract(Duration(minutes: notifyLeadMinutes));
   }
-  final baseTime = DateTime(date.year, date.month, date.day, hour, minute);
-  return baseTime.subtract(Duration(minutes: notifyLeadMinutes));
+  return DateTime(
+    date.year,
+    date.month,
+    date.day,
+    ExpiryPolicy.dailyDigestHour,
+    ExpiryPolicy.dailyDigestMinute,
+  );
 }
 
 /// Formats the Urgent Digest title.

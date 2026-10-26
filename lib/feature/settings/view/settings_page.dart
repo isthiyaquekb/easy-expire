@@ -102,6 +102,71 @@ class SettingsPage extends StatelessWidget {
                   provider.change(val);
                 },
               ),
+              if (!provider.isNotificationEnable)
+                Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.amber.shade700),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.amber.shade700,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Notifications Disabled',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Expiry alerts cannot be delivered while notification permission is denied. Inventory features remain fully accessible.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () => provider.openPermissionSettings(),
+                        icon: const Icon(Icons.settings_outlined, size: 16),
+                        label: const Text('Open Device Settings'),
+                      ),
+                    ],
+                  ),
+                ),
+              ListTile(
+                leading: Icon(Icons.alarm_on_outlined, color: iconColor),
+                title: Text(
+                  'Urgent Reminders (Expiring Today)',
+                  style: TextStyle(color: theme.colorScheme.onSurface),
+                ),
+                subtitle: Text(
+                  'Every ${provider.urgentReminderIntervalHours} hours for items expiring today',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                trailing: const Icon(Icons.chevron_right, size: 20),
+                onTap: () => _showUrgentIntervalDialog(context, provider),
+              ),
               ListTile(
                 leading: Icon(Icons.music_note_outlined, color: iconColor),
                 title: Text(
@@ -436,6 +501,42 @@ class SettingsPage extends StatelessWidget {
                 onChanged: (val) {
                   if (val != null) {
                     provider.setNotifyLeadMinutes(val);
+                    Navigator.of(context).pop();
+                  }
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showUrgentIntervalDialog(
+    BuildContext context,
+    SettingsViewmodel provider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Urgent Reminder Interval'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [2, 4].map((hours) {
+              return RadioListTile<int>(
+                title: Text('Every $hours hours'),
+                subtitle: Text(
+                  hours == 2
+                      ? 'Frequent alerts for items expiring today'
+                      : 'Moderate alerts for items expiring today',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                value: hours,
+                groupValue: provider.urgentReminderIntervalHours,
+                onChanged: (val) {
+                  if (val != null) {
+                    provider.setUrgentReminderIntervalHours(val);
                     Navigator.of(context).pop();
                   }
                 },

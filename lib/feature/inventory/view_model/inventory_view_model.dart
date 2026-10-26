@@ -314,8 +314,9 @@ class InventoryViewModel extends ChangeNotifier {
           .update(updatedProduct.toMap());
 
       try {
-        await ProductNotificationCoordinator()
-            .scheduleProductNotifications(updatedProduct);
+        final coordinator = ProductNotificationCoordinator();
+        await coordinator.resetProductNotificationState(productId);
+        await coordinator.scheduleProductNotifications(updatedProduct);
       } catch (notifErr) {
         log('[INVENTORY] Error reconciling notification for updated product: $notifErr');
       }
@@ -381,6 +382,9 @@ class InventoryViewModel extends ChangeNotifier {
           .delete();
 
       try {
+        final coordinator = ProductNotificationCoordinator();
+        await coordinator.cancelProductNotifications(product);
+        await coordinator.resetProductNotificationState(productId);
         await NotificationHistoryService().deleteNotification(
           userId: product.userId,
           productId: productId,

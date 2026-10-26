@@ -85,6 +85,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      if (mounted) {
+        try {
+          Provider.of<SettingsViewmodel>(context, listen: false).refreshPermissionState();
+        } catch (_) {}
+      }
       if (!AppInitializer.isFirebaseReady) {
         log('[NOTIF] App resumed but Firebase is not ready. Skipping resume check.');
         return;

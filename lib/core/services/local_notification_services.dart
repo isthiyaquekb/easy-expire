@@ -40,22 +40,23 @@ class LocalNotificationServices {
           iOS: darwinInitializationSettings,
         );
 
-    // request notification permissions
-    try {
-      flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.requestNotificationsPermission();
-    } catch (e) {
-      print("Error requesting Android notification permission: $e");
-    }
-
-    flutterLocalNotificationsPlugin.initialize(
+    // initialise plugin first so native context is established
+    await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: onTapNotification,
       onDidReceiveBackgroundNotificationResponse: onTapNotification,
     );
+
+    // request notification permissions if supported
+    try {
+      final androidPlugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      await androidPlugin?.requestNotificationsPermission();
+    } catch (e) {
+      log("Error requesting Android notification permission: $e");
+    }
   }
 
   /// Darwin notification details for iOS alert, sound, and badge presentation

@@ -14,4 +14,6 @@ class AppKeys {
   static const keyTimezone = 'timezone'; // e.g. "Asia/Kolkata"
   static const keyFcmToken = 'fcmToken';
   static const keyLastDeliveredDigestDate = 'lastDeliveredDigestDate';
+  static const keyUrgentReminderIntervalHours = 'urgentReminderIntervalHours';
+  static const keyDismissedNotifications = 'dismissedNotifications';
 }
