@@ -13,7 +13,8 @@ service cloud.firestore {
 
     // Products collection: user-scoped access
     match /products/{productId} {
-      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.user_id;
+      allow read, delete: if request.auth != null && request.auth.uid == resource.data.user_id;
+      allow update: if request.auth != null && request.auth.uid == resource.data.user_id && request.resource.data.user_id == resource.data.user_id;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.user_id;
     }
   }

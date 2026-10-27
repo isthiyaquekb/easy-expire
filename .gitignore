@@ -61,3 +61,25 @@ ios/Podfile.lock
 **/android/key.properties
 *.jks
 *.keystore
+
+# Internal audit reports and planning documents
+EE_010_NOTIFICATION_POLICY_IMPLEMENTATION_REPORT.md
+PHASE_2_IMPLEMENTATION_REPORT.md
+PRODUCTION_READINESS_AUDIT.md
+PRODUCTION_RELEASE_CHECKLIST.md
+PROJECT_OVERVIEW.md
+REMEDIATION_PLAN.md
+
+# Build artifacts
+android/build/
+
+# Firebase indexes and cloud functions
+firestore.indexes.json
+functions/
+
+# Local and temporary test suites
+test/core/services/
+test/feature/home/
+test/feature/notification/digest_schedule_test.dart
+test/feature/notification/ee_010_policy_alignment_test.dart
+

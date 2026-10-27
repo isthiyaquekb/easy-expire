@@ -4,7 +4,6 @@ import 'package:easyexpire/core/services/fcm_service.dart';
 import 'package:easyexpire/core/services/firebase_services.dart';
 import 'package:easyexpire/core/services/local_notification_services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
 
 class AppInitResult {

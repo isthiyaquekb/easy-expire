@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
@@ -56,7 +57,7 @@ class AppDateFormatter {
       DateTime dateTime = DateTime.parse(dateTimeString);
       return Timestamp.fromDate(dateTime);
     } catch (e) {
-      print('Error parsing DateTime: $e');
+      log('Error parsing DateTime: $e');
       return Timestamp.now(); // or handle the error appropriately
     }
   }

@@ -96,7 +96,7 @@ class SettingsPage extends StatelessWidget {
                     color: isDark ? Colors.grey[400] : Colors.grey[600],
                   ),
                 ),
-                activeColor: theme.colorScheme.primary,
+                activeThumbColor: theme.colorScheme.primary,
                 value: provider.isNotificationEnable,
                 onChanged: (val) {
                   provider.change(val);
@@ -491,21 +491,23 @@ class SettingsPage extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text('Digest Lead Time'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [15, 30, 45, 60, 90, 120].map((mins) {
-              return RadioListTile<int>(
-                title: Text('$mins minutes before opening'),
-                value: mins,
-                groupValue: provider.notifyLeadMinutes,
-                onChanged: (val) {
-                  if (val != null) {
-                    provider.setNotifyLeadMinutes(val);
-                    Navigator.of(context).pop();
-                  }
-                },
-              );
-            }).toList(),
+          content: RadioGroup<int>(
+            groupValue: provider.notifyLeadMinutes,
+            onChanged: (val) {
+              if (val != null) {
+                provider.setNotifyLeadMinutes(val);
+                Navigator.of(context).pop();
+              }
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [15, 30, 45, 60, 90, 120].map((mins) {
+                return RadioListTile<int>(
+                  title: Text('$mins minutes before opening'),
+                  value: mins,
+                );
+              }).toList(),
+            ),
           ),
         );
       },
@@ -521,27 +523,29 @@ class SettingsPage extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text('Urgent Reminder Interval'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [2, 4].map((hours) {
-              return RadioListTile<int>(
-                title: Text('Every $hours hours'),
-                subtitle: Text(
-                  hours == 2
-                      ? 'Frequent alerts for items expiring today'
-                      : 'Moderate alerts for items expiring today',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                value: hours,
-                groupValue: provider.urgentReminderIntervalHours,
-                onChanged: (val) {
-                  if (val != null) {
-                    provider.setUrgentReminderIntervalHours(val);
-                    Navigator.of(context).pop();
-                  }
-                },
-              );
-            }).toList(),
+          content: RadioGroup<int>(
+            groupValue: provider.urgentReminderIntervalHours,
+            onChanged: (val) {
+              if (val != null) {
+                provider.setUrgentReminderIntervalHours(val);
+                Navigator.of(context).pop();
+              }
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [2, 4].map((hours) {
+                return RadioListTile<int>(
+                  title: Text('Every $hours hours'),
+                  subtitle: Text(
+                    hours == 2
+                        ? 'Frequent alerts for items expiring today'
+                        : 'Moderate alerts for items expiring today',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  value: hours,
+                );
+              }).toList(),
+            ),
           ),
         );
       },
@@ -554,22 +558,24 @@ class SettingsPage extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text('Expiry Alert Lead Days'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children:
-                [1, 3, 5, 7, 14].map((days) {
-                  return RadioListTile<int>(
-                    title: Text('$days days before expiry'),
-                    value: days,
-                    groupValue: provider.leadDays,
-                    onChanged: (val) {
-                      if (val != null) {
-                        provider.setLeadDays(val);
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  );
-                }).toList(),
+          content: RadioGroup<int>(
+            groupValue: provider.leadDays,
+            onChanged: (val) {
+              if (val != null) {
+                provider.setLeadDays(val);
+                Navigator.of(context).pop();
+              }
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children:
+                  [1, 3, 5, 7, 14].map((days) {
+                    return RadioListTile<int>(
+                      title: Text('$days days before expiry'),
+                      value: days,
+                    );
+                  }).toList(),
+            ),
           ),
         );
       },

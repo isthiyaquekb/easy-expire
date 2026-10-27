@@ -130,7 +130,7 @@ class AuthViewModel extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      print("Login Error: $e");
+      log("Login Error: $e");
       return false;
     }
   }
@@ -215,7 +215,7 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<bool> logout() async {
     try {
-      await _firebaseServices.auth.signOut();
+      await _firebaseServices.appLogout();
       _user = null;
       _emailController.clear();
       _passwordController.clear();
@@ -241,6 +241,7 @@ class AuthViewModel extends ChangeNotifier {
           .createUserWithEmailAndPassword(email: email, password: password);
       _user = userCredential.user;
 
+      if (!context.mounted) return;
       if (user != null) {
         _isLoading = false;
         final userData = UserModel(
@@ -257,6 +258,7 @@ class AuthViewModel extends ChangeNotifier {
         // Get.offAllNamed(AppRoutes.signUp);
       }
     } on FirebaseAuthException catch (e) {
+      if (!context.mounted) return;
       if (e.code == 'email-already-in-use') {
         // Email already exists
         log('The account already exists for that email.');
@@ -281,22 +283,23 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   void createUser(UserModel userData, BuildContext context) async {
-    await _firebaseServices.fireStore
-        .collection("Users")
-        .doc(userData.id)
-        .set(userData.toMap(), SetOptions(merge: true))
-        .whenComplete(() {
-          FcmService().syncTokenToFirestore(userData.id);
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Success ,Your account has been created')),
-          );
-        })
-        .catchError((error, stackTrace) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failure ,Something went wrong')),
-          );
-        });
+    try {
+      await _firebaseServices.fireStore
+          .collection("Users")
+          .doc(userData.id)
+          .set(userData.toMap(), SetOptions(merge: true));
+      await FcmService().syncTokenToFirestore(userData.id);
+      if (!context.mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Success, Your account has been created')),
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failure, Something went wrong')),
+      );
+    }
   }
 
   @override
@@ -304,12 +307,12 @@ class AuthViewModel extends ChangeNotifier {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
-    print("AuthViewModel disposed"); // Add for debugging
+    log("AuthViewModel disposed"); // Add for debugging
   }
 
   void togglePasswordVisibility() {
     _isPasswordVisible = !_isPasswordVisible;
-    print("AuthViewModel togglePasswordVisibility called $_isPasswordVisible");
+    log("AuthViewModel togglePasswordVisibility called $_isPasswordVisible");
     notifyListeners();
   }
 

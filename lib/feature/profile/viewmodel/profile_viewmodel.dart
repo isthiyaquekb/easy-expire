@@ -30,9 +30,9 @@ class ProfileViewmodel extends ChangeNotifier {
     var userData = await fetchUserDetails();
     if (userData != null) {
       userModel = userData;
-      print("User ID: ${userData.id}");
-      print("Store Name: ${userData.storeName}");
-      print("Email: ${userData.email}");
+      log("User ID: ${userData.id}");
+      log("Store Name: ${userData.storeName}");
+      log("Email: ${userData.email}");
       userId = userData.id;
       _emailController.text = userModel.email;
       _storeController.text = userModel.storeName;
@@ -40,7 +40,7 @@ class ProfileViewmodel extends ChangeNotifier {
       _phoneController.text = userModel.phone;
       notifyListeners();
     } else {
-      print("User not found.");
+      log("User not found.");
     }
     notifyListeners();
   }
@@ -123,6 +123,7 @@ class ProfileViewmodel extends ChangeNotifier {
       log("PROFILE UPDATE RESPONSE");
       // enableEdit(!isEnabled);
       initialize();
+      if (!context.mounted) return;
       Navigator.pop(context);
     } catch (e) {
       log("EXCEPTION:${e.toString()}");

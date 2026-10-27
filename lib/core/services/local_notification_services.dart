@@ -14,8 +14,11 @@ class LocalNotificationServices {
   static final onClickNotification = BehaviorSubject<String>();
 
   //ON TAP ON ANY NOTIFICATION
+  @pragma('vm:entry-point')
   static void onTapNotification(NotificationResponse response) {
-    onClickNotification.add(response.payload!);
+    if (response.payload != null && response.payload!.isNotEmpty) {
+      onClickNotification.add(response.payload!);
+    }
   }
 
   // INITIALIZATION

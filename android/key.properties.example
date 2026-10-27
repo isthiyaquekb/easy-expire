@@ -1,8 +1,0 @@
-# Safe placeholder configuration for Android release signing
-# Copy this file to 'key.properties' and fill in your real keystore details.
-# DO NOT commit 'key.properties' or keystore files to version control!
-
-storePassword=YOUR_STORE_PASSWORD
-keyPassword=YOUR_KEY_PASSWORD
-keyAlias=YOUR_KEY_ALIAS
-storeFile=path/to/keystore.jks

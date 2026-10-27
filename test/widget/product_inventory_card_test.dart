@@ -47,5 +47,77 @@ void main() {
       expect(find.text('Expired Milk'), findsOneWidget);
       expect(find.text('EXPIRED'), findsOneWidget);
     });
+
+    testWidgets('triggers onEdit callback when Edit menu item is tapped', (
+      WidgetTester tester,
+    ) async {
+      bool editTapped = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ProductInventoryCard(
+              productName: 'Fresh Butter',
+              batchId: 'B-101',
+              quantity: 10,
+              maxQuantity: 100,
+              daysLeft: 5,
+              onEdit: () {
+                editTapped = true;
+              },
+            ),
+          ),
+        ),
+      );
+
+      final menuButton = find.byType(PopupMenuButton<String>);
+      expect(menuButton, findsOneWidget);
+
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+
+      final editItem = find.text('Edit');
+      expect(editItem, findsOneWidget);
+
+      await tester.tap(editItem);
+      await tester.pumpAndSettle();
+
+      expect(editTapped, isTrue);
+    });
+
+    testWidgets('triggers onDelete callback when Delete menu item is tapped', (
+      WidgetTester tester,
+    ) async {
+      bool deleteTapped = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ProductInventoryCard(
+              productName: 'Fresh Butter',
+              batchId: 'B-101',
+              quantity: 10,
+              maxQuantity: 100,
+              daysLeft: 5,
+              onDelete: () {
+                deleteTapped = true;
+              },
+            ),
+          ),
+        ),
+      );
+
+      final menuButton = find.byType(PopupMenuButton<String>);
+      expect(menuButton, findsOneWidget);
+
+      await tester.tap(menuButton);
+      await tester.pumpAndSettle();
+
+      final deleteItem = find.text('Delete');
+      expect(deleteItem, findsOneWidget);
+
+      await tester.tap(deleteItem);
+      await tester.pumpAndSettle();
+
+      expect(deleteTapped, isTrue);
+    });
   });
 }

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:easyexpire/core/constant/app_assets.dart';
 import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:easyexpire/core/constant/expiry_policy.dart';
@@ -15,8 +16,6 @@ class InventoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<FormState> localFormKey = GlobalKey<FormState>();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final inventoryProvider = Provider.of<InventoryViewModel>(
         context,
@@ -41,7 +40,7 @@ class InventoryPage extends StatelessWidget {
             icon: const Icon(Icons.search, color: AppColors.primary),
             onPressed: () {
               // TODO: Implement search functionality for notifications
-              print("Search notifications tapped!");
+              log("Search notifications tapped!");
             },
           ),
         ],
@@ -523,81 +522,12 @@ class InventoryPage extends StatelessWidget {
                       itemCount: viewModel.productFilteredList.length,
                       itemBuilder: (context, index) {
                         final product = viewModel.productFilteredList[index];
-                        final isExpiredOrToday = product.daysLeft <= 0;
                         final int maxQuantity =
                             product.quantity > 0
                                 ? (product.quantity +
                                     50) // Example: current quantity + 50, or some other logic
                                 : 100;
-                        final daysLeftText =
-                            product.daysLeft > 0
-                                ? "${product.daysLeft} days left"
-                                : (product.daysLeft == 0
-                                    ? "0 days left"
-                                    : "${product.daysLeft} days left");
 
-                        // return Card(
-                        //   margin: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 6.0),
-                        //   elevation: 2,
-                        //   shape: RoundedRectangleBorder(
-                        //     borderRadius: BorderRadius.circular(12),
-                        //     side: BorderSide(
-                        //       color: isExpiredOrToday ? Colors.red.shade100 : Colors.teal.shade100,
-                        //       width: 1.2,
-                        //     ),
-                        //   ),
-                        //   child: Padding(
-                        //     padding: const EdgeInsets.all(16.0),
-                        //     child: Row(
-                        //       crossAxisAlignment: CrossAxisAlignment.center,
-                        //       children: [
-                        //         Expanded(
-                        //           child: Column(
-                        //             crossAxisAlignment: CrossAxisAlignment.start,
-                        //             children: [
-                        //               Text(
-                        //                 product.productName ?? 'Unknown Product',
-                        //                 style: const TextStyle(
-                        //                   fontSize: 16,
-                        //                   fontWeight: FontWeight.bold,
-                        //                   color: Colors.black87,
-                        //                 ),
-                        //                 maxLines: 2,
-                        //                 overflow: TextOverflow.ellipsis,
-                        //               ),
-                        //               const SizedBox(height: 4),
-                        //               Text(
-                        //                 "Expiry Date: ${product.expiryDate}", // Assuming expiryDate is already formatted
-                        //                 style: TextStyle(
-                        //                   fontSize: 13,
-                        //                   color: Colors.grey[600],
-                        //                 ),
-                        //               ),
-                        //               const SizedBox(height: 2),
-                        //               Text(
-                        //                 "QTY: ${product.quantity}",
-                        //                 style: TextStyle(
-                        //                   fontSize: 13,
-                        //                   color: Colors.grey[600],
-                        //                 ),
-                        //               ),
-                        //             ],
-                        //           ),
-                        //         ),
-                        //         const SizedBox(width: 12),
-                        //         // Days Left display
-                        //         Text(
-                        //           daysLeftText,
-                        //           style: TextStyle(
-                        //             fontSize: 18,
-                        //             fontWeight: FontWeight.bold,
-                        //             color: isExpiredOrToday ? Colors.red.shade700 : Colors.green.shade700,
-                        //           ),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //   ),
-                        // );
                         return ProductInventoryCard(
                           productName: product.productName,
                           batchId: product.batchNo,
@@ -663,14 +593,4 @@ class InventoryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFilterChip(String label, HomeViewModel viewModel, int? days) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: viewModel.selectedFilter == days,
-        onSelected: (_) => viewModel.setSelectedFilter(days),
-      ),
-    );
-  }
 }

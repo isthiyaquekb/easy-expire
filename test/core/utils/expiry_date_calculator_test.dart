@@ -249,18 +249,29 @@ void main() {
     );
 
     test(
-      'Expired item (negative days) stops notification and marks for cancel',
+      'EE-010 Policy 2: Expired item (negative days) triggers hourly alert and throttles within 60 minutes',
       () {
         final expiry = ref.subtract(const Duration(days: 2));
+        // Not throttled: should notify
         final decision = evaluateNotificationSchedule(
           productName: 'Old Bread',
           expiryDate: expiry,
           referenceTime: ref,
         );
 
-        expect(decision.shouldNotify, isFalse);
+        expect(decision.shouldNotify, isTrue);
         expect(decision.tier, equals(ExpiryNotificationTier.expired));
-        expect(decision.reason, contains('already expired'));
+        expect(decision.title, equals('Product Expired'));
+
+        // Throttled within 60 minutes: should not notify
+        final throttledDecision = evaluateNotificationSchedule(
+          productName: 'Old Bread',
+          expiryDate: expiry,
+          referenceTime: ref,
+          lastNotifiedAt: ref.subtract(const Duration(minutes: 30)),
+        );
+        expect(throttledDecision.shouldNotify, isFalse);
+        expect(throttledDecision.reason, contains('Throttled'));
       },
     );
   });

@@ -62,7 +62,7 @@ class LoginPage extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 4,
                           offset: const Offset(0, 1),
                         ),
@@ -146,6 +146,7 @@ class LoginPage extends StatelessWidget {
                                     authViewmodel.passwordController.text,
                                   );
                                   authViewmodel.setIsLoading(false);
+                                  if (!context.mounted) return;
                                   if (success) {
                                     authViewmodel.emailController.clear();
                                     authViewmodel.passwordController.clear();

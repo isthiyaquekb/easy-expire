@@ -105,10 +105,9 @@ class AddNewProductScreen extends StatelessWidget {
                             const SizedBox(height: 24),
 
                             // Scan Barcode Button
-                            if (false)
-                              CustomOutlinedIconButton(
-                                text: "Scan Barcode / QR",
-                                icon: Icons.qr_code_scanner_rounded,
+                            CustomOutlinedIconButton(
+                              text: "Scan Barcode / QR",
+                              icon: Icons.qr_code_scanner_rounded,
                                 onTap: () async {
                                   // TODO: Trigger QR / Barcode Scanner
                                   final scannedBarcode = await Navigator.of(

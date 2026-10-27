@@ -52,13 +52,13 @@ class InventoryViewModel extends ChangeNotifier {
   void initialize() async {
     var userData = await fetchUserDetails();
     if (userData != null) {
-      print("User ID: ${userData.id}");
-      print("Store Name: ${userData.storeName}");
-      print("Email: ${userData.email}");
+      log("User ID: ${userData.id}");
+      log("Store Name: ${userData.storeName}");
+      log("Email: ${userData.email}");
       userId = userData.id;
       notifyListeners();
     } else {
-      print("User not found.");
+      log("User not found.");
     }
     notifyListeners();
   }
@@ -135,14 +135,14 @@ class InventoryViewModel extends ChangeNotifier {
   }
 
   void onSelectingDate() {
-    print("PRINTING SELECTED DATE:${dateController.text}");
+    log("PRINTING SELECTED DATE:${dateController.text}");
     final inputFormat = DateFormat("dd/MM/yyyy");
     // Parse the date string with the correct format
     DateTime parsedDate = inputFormat.parse(dateController.text);
     DateTime tempDate = DateFormat(
       "yyyy-MM-dd hh:mm:ss",
     ).parse(parsedDate.toString());
-    print("PRINTING FORMATTED DATE:$tempDate");
+    log("PRINTING FORMATTED DATE:$tempDate");
   }
 
   void pickDate(BuildContext context) async {
@@ -185,11 +185,11 @@ class InventoryViewModel extends ChangeNotifier {
       now.millisecond,
       now.microsecond,
     );
-    print("Combined DateTime: $combinedDateTime");
+    log("Combined DateTime: $combinedDateTime");
     currentDate = combinedDateTime;
-    print('DATETIME NOW:${DateTime.now()}');
-    print('CURRENT PICKED DATE TIME:$combinedDateTime');
-    print('CURRENT PICKED DATE:$currentDate');
+    log('DATETIME NOW:${DateTime.now()}');
+    log('CURRENT PICKED DATE TIME:$combinedDateTime');
+    log('CURRENT PICKED DATE:$currentDate');
   }
 
   Future<void> submit(BuildContext context) async {
@@ -419,7 +419,7 @@ class InventoryViewModel extends ChangeNotifier {
 
   void calculateDaysRemaining(DateTime from, DateTime to) {
     dayLeft = calculateCalendarDaysRemaining(from, to);
-    print("Calculated DATE IS $dayLeft");
+    log("Calculated DATE IS $dayLeft");
   }
 
   void getAllProductFromDB() async {

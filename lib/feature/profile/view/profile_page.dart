@@ -207,6 +207,7 @@ class ProfilePage extends StatelessWidget {
                           isLogout: true,
                           onTap: () async {
                             await homeVm.signOut();
+                            if (!context.mounted) return;
                             Navigator.pushNamedAndRemoveUntil(
                               context,
                               AppRoutes.login,

@@ -1,15 +1,14 @@
+import 'dart:developer';
 import 'package:easyexpire/core/constant/app_assets.dart';
 import 'package:easyexpire/core/constant/app_colors.dart';
 import 'package:easyexpire/core/theme/theme_view_model.dart';
 import 'package:easyexpire/feature/home/viewmodel/home_viewmodel.dart';
 import 'package:easyexpire/feature/notification/viewmodel/notification_viewmodel.dart';
-import 'package:easyexpire/utils/Formatter/app_date_formatter.dart';
 import 'package:easyexpire/widgets/common_app_bar.dart';
 import 'package:easyexpire/widgets/overview_card.dart';
 import 'package:easyexpire/widgets/urgent_attention_tile.dart';
 import 'package:easyexpire/core/constant/expiry_policy.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
@@ -49,7 +48,7 @@ class HomePage extends StatelessWidget {
             ),
             onPressed: () {
               // TODO: Implement search functionality for notifications
-              print("Search notifications tapped!");
+              log("Search notifications tapped!");
             },
           ),
           Consumer<ThemeViewModel>(
@@ -82,10 +81,6 @@ class HomePage extends StatelessWidget {
               viewModel.productList
                   .where((p) => ExpiryPolicy.isUrgent(p.daysLeft))
                   .toList();
-          final totalSKUs =
-              viewModel
-                  .productList
-                  .length; // Assuming each InventoryModel is one SKU
           final urgentAttentionItems = [
             ...expiredItems,
             ...expiringTodayItems.where(
@@ -99,8 +94,7 @@ class HomePage extends StatelessWidget {
           int safeStatusSKUs = 0;
           for (var product in viewModel.productList) {
             if (ExpiryPolicy.isSafe(product.daysLeft)) {
-              safeStatusSKUs +=
-                  product.quantity ?? 0; // Assuming quantity is int?
+              safeStatusSKUs += product.quantity;
             }
           }
 
@@ -254,12 +248,10 @@ class HomePage extends StatelessWidget {
                                 .take(5) // Display top 5 urgent items
                                 .map(
                                   (product) => UrgentAttentionTile(
-                                    productName: product.productName ?? 'N/A',
-                                    subtitle:
-                                        product.batchNo ??
-                                        'N/A', // Prioritize batchNo, then location
-                                    daysLeft: product.daysLeft ?? 0,
-                                    quantity: product.quantity ?? 0,
+                                    productName: product.productName,
+                                    subtitle: product.batchNo,
+                                    daysLeft: product.daysLeft,
+                                    quantity: product.quantity,
                                     itemLength: urgentAttentionItems.length,
                                     index: urgentAttentionItems.indexOf(
                                       product,
@@ -315,17 +307,6 @@ class HomePage extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, HomeViewModel viewModel, int? days) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: viewModel.selectedFilter == days,
-        onSelected: (_) => viewModel.setSelectedFilter(days),
       ),
     );
   }

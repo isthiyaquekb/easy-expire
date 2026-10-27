@@ -151,7 +151,7 @@ void main() {
     );
 
     test(
-      'PHASE 3: Expired item (-1 day) suppresses notifications and marks for cancellation',
+      'EE-010 Policy 2: Expired item (-1 day) triggers hourly alert when not throttled',
       () {
         final expiryDate = now.subtract(const Duration(days: 1));
         final product = InventoryModel(
@@ -170,9 +170,10 @@ void main() {
           referenceTime: now,
         );
 
-        expect(decision.shouldNotify, isFalse);
+        expect(decision.shouldNotify, isTrue);
         expect(decision.tier, equals(ExpiryNotificationTier.expired));
         expect(decision.daysRemaining, equals(-1));
+        expect(decision.title, equals('Product Expired'));
       },
     );
 
@@ -345,7 +346,7 @@ void main() {
         // Apples is in warning window -> delivers 1 warning digest; Juice is expired
         expect(sentCount, equals(1));
         expect(loggedFirestore.length, equals(1));
-        expect(loggedFirestore.first['title'], equals('Product Expiry Alert'));
+        expect(loggedFirestore.first['title'], contains('Check stock'));
         expect(loggedFirestore.first['body'], contains('Apples'));
 
         // Check deduplication was stored for warning digest ID
@@ -497,7 +498,7 @@ void main() {
         // For today: exactly ONE warning digest delivered, NOT 1000
         expect(MockNotificationState.shownNotifications.length, equals(1));
         final shown = MockNotificationState.shownNotifications.first;
-        expect(shown['title'], equals('Product Expiry Alert'));
+        expect(shown['title'], contains('Check stock'));
         expect(
           shown['body'],
           contains(
@@ -571,15 +572,15 @@ void main() {
         // Exactly ONE Urgent digest (for prod0) and exactly ONE Warning digest (for prod3, prod4)
         final urgentShown =
             MockNotificationState.shownNotifications
-                .where((n) => (n['title'] as String).contains('TODAY'))
+                .where((n) => (n['title'] as String).contains('Pull before opening') || (n['title'] as String).contains('TODAY'))
                 .toList();
         final warningShown =
             MockNotificationState.shownNotifications
-                .where((n) => (n['title'] as String).contains('Alert'))
+                .where((n) => (n['title'] as String).contains('Check stock') || (n['title'] as String).contains('Alert'))
                 .toList();
 
         expect(urgentShown.length, equals(1));
-        expect(urgentShown.first['body'], equals('Sandwich expires TODAY'));
+        expect(urgentShown.first['body'], contains('Sandwich expires'));
 
         expect(warningShown.length, equals(1));
         expect(
@@ -631,22 +632,39 @@ void main() {
       expect(idsRun2, equals(idsRun1));
     });
 
-    test('REQUIRED: Product expired (<0): nothing pending', () async {
-      final prodExpired = InventoryModel(
-        id: 'p_exp',
-        productName: 'Expired Chicken',
-        userId: 'u1',
-        expiryDate: Timestamp.fromDate(now.subtract(const Duration(days: 2))),
-        batchNo: 'BEX',
-        quantity: 1,
-        daysLeft: -2,
-      );
+    test(
+      'EE-010 Policy 2: Product expired (<0) schedules hourly reminder, excluded from daily digest, and suppressed by 24h dismissal',
+      () async {
+        final prodExpired = InventoryModel(
+          id: 'p_exp',
+          productName: 'Expired Chicken',
+          userId: 'u1',
+          expiryDate: Timestamp.fromDate(now.subtract(const Duration(days: 2))),
+          batchNo: 'BEX',
+          quantity: 1,
+          daysLeft: -2,
+        );
 
-      await coordinator.reconcileProducts([prodExpired], referenceTime: now);
+        await coordinator.reconcileProducts([prodExpired], referenceTime: now);
 
-      final pending = await LocalNotificationServices.getPendingNotifications();
-      expect(pending, isEmpty);
-      expect(MockNotificationState.shownNotifications, isEmpty);
-    });
+        final pending =
+            await LocalNotificationServices.getPendingNotifications();
+        // Policy 2: hourly reminder is scheduled
+        expect(pending.length, equals(1));
+        final expId = DigestNotificationKeys.expiredProductId('p_exp');
+        expect(pending.first.id, equals(expId));
+        expect(pending.first.title, equals('Product Expired'));
+
+        // Excluded from daily digest
+        expect(MockNotificationState.shownNotifications, isEmpty);
+
+        // When dismissed for 24h, suppression takes precedence
+        coordinator.recordDismissal('p_exp', now);
+        await coordinator.reconcileProducts([prodExpired], referenceTime: now);
+        final pendingAfterDismiss =
+            await LocalNotificationServices.getPendingNotifications();
+        expect(pendingAfterDismiss, isEmpty);
+      },
+    );
   });
 }

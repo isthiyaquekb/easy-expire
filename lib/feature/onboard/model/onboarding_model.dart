@@ -1,7 +1,7 @@
 class OnBoardingModel {
-  final imageAsset;
-  final title;
-  final description;
+  final String imageAsset;
+  final String title;
+  final String description;
 
   OnBoardingModel(this.imageAsset, this.title, this.description);
 }

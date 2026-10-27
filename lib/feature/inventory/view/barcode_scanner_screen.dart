@@ -9,7 +9,23 @@ class BarcodeScannerScreen extends StatefulWidget {
 }
 
 class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+  late final MobileScannerController _controller;
   bool _isDetecting = false; // Flag to prevent multiple pops
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = MobileScannerController(
+      detectionSpeed: DetectionSpeed.normal,
+      facing: CameraFacing.back,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +36,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         elevation: 0.5,
       ),
       body: MobileScanner(
-        controller: MobileScannerController(
-          detectionSpeed: DetectionSpeed.normal, // Adjust as needed
-          facing: CameraFacing.back,
-        ),
+        controller: _controller,
         onDetect: (capture) {
           if (_isDetecting) return; // Ignore if already processing a detection
 

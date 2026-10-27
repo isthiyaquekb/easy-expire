@@ -373,6 +373,7 @@ class SettingsViewmodel extends ChangeNotifier {
         _isLoading = false;
         notifyListeners();
 
+        if (!context.mounted) return;
         // Prompt for password re-authentication
         final reauthSuccess = await _promptPasswordReauth(context, user);
         if (reauthSuccess && context.mounted) {

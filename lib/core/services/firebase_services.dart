@@ -58,10 +58,10 @@ class FirebaseServices {
         var userData = querySnapshot.docs.first.data() as Map<String, dynamic>;
         return UserModel.fromMap(userData);
       } else {
-        print("User document not found in Firestore.");
+        log("User document not found in Firestore.");
       }
     } else {
-      print("No user is signed in.");
+      log("No user is signed in.");
     }
     return null;
   }

@@ -52,7 +52,10 @@ void setupTestEnvironment() {
   );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(notifChannel, (MethodCall methodCall) async {
-        if (methodCall.method == 'pendingNotificationRequests') {
+        if (methodCall.method == 'initialize' ||
+            methodCall.method == 'requestNotificationsPermission') {
+          return true;
+        } else if (methodCall.method == 'pendingNotificationRequests') {
           return MockNotificationState.pendingMap.values
               .map((map) => Map<String, dynamic>.from(map))
               .toList();
@@ -62,6 +65,7 @@ void setupTestEnvironment() {
               .toList();
         } else if (methodCall.method == 'zonedSchedule' ||
             methodCall.method == 'schedule' ||
+            methodCall.method == 'periodicallyShow' ||
             methodCall.method == 'show') {
           final args = Map<String, dynamic>.from(
             methodCall.arguments as Map<dynamic, dynamic>,
@@ -100,5 +104,28 @@ void setupTestEnvironment() {
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(timezoneChannel, (MethodCall methodCall) async {
         return 'UTC';
+      });
+
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMessageHandler(
+        'dev.flutter.pigeon.workmanager_platform_interface.WorkmanagerHostApi.registerPeriodicTask',
+        (ByteData? message) async {
+          return const StandardMessageCodec().encodeMessage(<Object?>[null]);
+        },
+      );
+
+  const MethodChannel permissionChannel = MethodChannel(
+    'flutter.baseflow.com/permissions/methods',
+  );
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(permissionChannel, (MethodCall methodCall) async {
+        if (methodCall.method == 'checkPermissionStatus') {
+          return 0; // PermissionStatus.denied
+        } else if (methodCall.method == 'requestPermissions') {
+          return {17: 0};
+        } else if (methodCall.method == 'openAppSettings') {
+          return true;
+        }
+        return null;
       });
 }
