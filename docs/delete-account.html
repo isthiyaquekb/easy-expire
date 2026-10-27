@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Account Deletion Request - Easy Expire by Isthiyaque Kambathagothi. Instructions to permanently delete your account and data.">
+  <title>Delete Account &amp; Data - Easy Expire</title>
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --border-color: #e2e8f0;
+      --callout-bg: #eff6ff;
+      --danger-bg: #fef2f2;
+      --danger-border: #ef4444;
+      --danger-text: #991b1b;
+      --step-badge-bg: #2563eb;
+      --step-badge-text: #ffffff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #0b1120;
+        --card-bg: #1e293b;
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --primary: #3b82f6;
+        --primary-hover: #60a5fa;
+        --border-color: #334155;
+        --callout-bg: #1e3a5f;
+        --danger-bg: #361616;
+        --danger-border: #dc2626;
+        --danger-text: #fecaca;
+        --step-badge-bg: #3b82f6;
+        --step-badge-text: #0b1120;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.65;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--card-bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .brand {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--primary);
+    }
+
+    main {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem;
+    }
+
+    .header-block {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .dev-badge {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .dev-badge strong {
+      color: var(--text-main);
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      color: var(--text-main);
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: var(--text-main);
+    }
+
+    .danger-notice {
+      background-color: var(--danger-bg);
+      border-left: 4px solid var(--danger-border);
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+      margin: 1.5rem 0;
+      color: var(--danger-text);
+      font-size: 0.95rem;
+    }
+
+    .option-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .option-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .steps-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 1rem 0;
+    }
+
+    .steps-list li {
+      position: relative;
+      padding-left: 2.5rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .step-number {
+      position: absolute;
+      left: 0;
+      top: 0.15rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      background-color: var(--step-badge-bg);
+      color: var(--step-badge-text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    ul {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.35rem;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .code-block {
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+      margin: 0.75rem 0;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-color);
+      background-color: var(--card-bg);
+      padding: 2rem 1.25rem;
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="brand">Easy Expire</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms-and-conditions.html">Terms</a>
+        <a href="delete-account.html" class="active">Delete Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="header-block">
+      <h1>Delete Account &amp; Associated Data</h1>
+      <div class="dev-badge">
+        Application: <strong>Easy Expire</strong> (com.kambatha.easyexpire)<br>
+        Developer: <strong>Isthiyaque Kambathagothi</strong> &bull; Last updated: October 27, 2026
+      </div>
+    </div>
+
+    <p>In compliance with Google Play's Account Deletion Policy, users of <strong>Easy Expire</strong> have the right to request full and permanent deletion of their account credentials, user profile, inventory records, and all associated data.</p>
+
+    <div class="danger-notice">
+      <strong>Warning:</strong> Account deletion is permanent and irreversible. Once executed, your entire inventory catalog, batch numbers, alerts, and store profile are immediately purged from our servers and cannot be recovered.
+    </div>
+
+    <h2>How to Delete Your Account</h2>
+    <p>You may delete your account directly inside the mobile application (recommended for immediate deletion) or submit an email request.</p>
+
+    <div class="option-card">
+      <h3>Option 1: In-App Immediate Deletion (Recommended)</h3>
+      <p>You can execute an instant, self-service deletion directly inside the Easy Expire application without waiting for manual processing:</p>
+      <ol class="steps-list">
+        <li>
+          <span class="step-number">1</span>
+          Open the <strong>Easy Expire</strong> app on your device and make sure you are signed in.
+        </li>
+        <li>
+          <span class="step-number">2</span>
+          Tap the <strong>Settings</strong> icon on the bottom navigation bar.
+        </li>
+        <li>
+          <span class="step-number">3</span>
+          Under the <em>Account</em> section, select <strong>Delete My Account</strong>.
+        </li>
+        <li>
+          <span class="step-number">4</span>
+          If prompted, re-enter your password to authenticate your ownership of the account.
+        </li>
+        <li>
+          <span class="step-number">5</span>
+          Review the warning modal and confirm by tapping <strong>Delete</strong>.
+        </li>
+      </ol>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0;">
+        <em>Result:</em> The app immediately runs a cascading deletion script, purges all your data across cloud servers, cancels device alarms, erases local device storage, and signs you out.
+      </p>
+    </div>
+
+    <div class="option-card">
+      <h3>Option 2: Email Deletion Request (Web / Offline Request)</h3>
+      <p>If you have uninstalled the application or cannot access your mobile device, you can submit an account deletion request via email:</p>
+      <ul>
+        <li><strong>Send To:</strong> <a href="mailto:developer.isthiyaque@gmail.com">developer.isthiyaque@gmail.com</a></li>
+        <li><strong>Subject Line:</strong> <code>Delete my account</code></li>
+        <li><strong>Requirements:</strong> You must send the request directly from the registered email address associated with your Easy Expire account. Please include your Store / Business name in the message body so we can verify ownership.</li>
+      </ul>
+      <div class="code-block">
+        To: developer.isthiyaque@gmail.com<br>
+        Subject: Delete my account<br><br>
+        Hello,<br>
+        I request the permanent deletion of my Easy Expire account and all associated inventory data.<br>
+        Registered Email: [your-registered-email@example.com]<br>
+        Store / Business Name: [Your Store Name]
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0;">
+        <em>Processing Time:</em> Once verified, your account and all data will be permanently wiped from our database within <strong>30 days</strong>. You will receive a confirmation email once completed.
+      </p>
+    </div>
+
+    <h2>What Exactly Gets Deleted</h2>
+    <p>Based on our real application deletion architecture, when an account deletion is executed:</p>
+    <ul>
+      <li><strong>Inventory Catalog (Cloud Firestore):</strong> Every product document in the <code>products</code> collection linked to your account ID (<code>user_id</code>) is permanently deleted. This includes product names, batch numbers, barcodes, quantities, and expiry dates.</li>
+      <li><strong>In-App Notifications:</strong> All records in your notification history subcollection (<code>Users/{uid}/notifications</code>) are deleted.</li>
+      <li><strong>User Profile Document:</strong> Your profile document in <code>Users/{uid}</code> containing your store name, address, contact phone number, and Firebase Cloud Messaging (FCM) device push tokens is permanently deleted.</li>
+      <li><strong>Firebase Authentication Account:</strong> Your authentication record and login credentials in Firebase Auth are deleted, terminating your user identity.</li>
+      <li><strong>Local Device Cache &amp; Alarms:</strong> All scheduled local device reminder alarms are cancelled, notification deduplication tables are cleared, and local storage tokens (GetStorage / SharedPreferences) are erased on the device.</li>
+    </ul>
+
+    <h2>Data Retention Policy Post-Deletion</h2>
+    <p><strong>Zero Data Retained:</strong> We do not retain archival snapshots, shadow copies, or backup archives of deleted accounts. Once deletion completes, all personal and inventory data is completely purged.</p>
+
+    <h2>Need Help?</h2>
+    <p>If you have any questions or encounter issues deleting your account, contact our developer support team at <a href="mailto:developer.isthiyaque@gmail.com">developer.isthiyaque@gmail.com</a>.</p>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Easy Expire by Isthiyaque Kambathagothi. All rights reserved.</p>
+    <p style="margin-top: 0.5rem;"><a href="mailto:developer.isthiyaque@gmail.com">developer.isthiyaque@gmail.com</a> &bull; <a href="privacy-policy.html">Privacy Policy</a> &bull; <a href="terms-and-conditions.html">Terms</a> &bull; <a href="delete-account.html">Delete Account</a></p>
+  </footer>
+</body>
+</html>

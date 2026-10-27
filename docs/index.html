@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Easy Expire - Smart inventory expiration tracking and proactive notification management for retail, pharmacy, and grocery businesses.">
+  <title>Easy Expire - Inventory Expiry Tracker &amp; Legal Center</title>
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --border-color: #e2e8f0;
+      --tag-bg: #eff6ff;
+      --tag-text: #1d4ed8;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #0b1120;
+        --card-bg: #1e293b;
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --primary: #3b82f6;
+        --primary-hover: #60a5fa;
+        --border-color: #334155;
+        --tag-bg: #1e3a5f;
+        --tag-text: #93c5fd;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--card-bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .brand {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--primary);
+    }
+
+    main {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 1.5rem 0 2rem;
+    }
+
+    .app-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      background-color: var(--tag-bg);
+      color: var(--tag-text);
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.75rem;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      display: block;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+
+    .card h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .arrow {
+      font-size: 1.1rem;
+      transition: transform 0.15s ease;
+    }
+
+    .card:hover .arrow {
+      transform: translateX(4px);
+    }
+
+    footer {
+      border-top: 1px solid var(--border-color);
+      background-color: var(--card-bg);
+      padding: 2rem 1.25rem;
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="brand">Easy Expire</a>
+      <nav>
+        <a href="index.html" class="active">Home</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms-and-conditions.html">Terms</a>
+        <a href="delete-account.html">Delete Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="app-badge">Smart Expiry &amp; Inventory Management</span>
+      <h1>Easy Expire</h1>
+      <p class="subtitle">A fast, reliable inventory tracking and expiration reminder application designed for retail shops, pharmacies, and small businesses.</p>
+    </section>
+
+    <div class="cards-grid">
+      <a href="privacy-policy.html" class="card">
+        <h2>Privacy Policy <span class="arrow">&rarr;</span></h2>
+        <p>Understand how Easy Expire collects, stores, protects, and handles your account details and store inventory records.</p>
+      </a>
+
+      <a href="terms-and-conditions.html" class="card">
+        <h2>Terms &amp; Conditions <span class="arrow">&rarr;</span></h2>
+        <p>Review the rules, service disclaimers regarding inventory verification, limitation of liability, and legal agreement governing app usage.</p>
+      </a>
+
+      <a href="delete-account.html" class="card">
+        <h2>Delete My Account <span class="arrow">&rarr;</span></h2>
+        <p>Information and step-by-step instructions for permanently deleting your account, profile, inventory data, and notifications.</p>
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Easy Expire by Isthiyaque Kambathagothi. All rights reserved.</p>
+    <p style="margin-top: 0.5rem;">For support, inquiries, or data requests, contact <a href="mailto:developer.isthiyaque@gmail.com">developer.isthiyaque@gmail.com</a>.</p>
+  </footer>
+</body>
+</html>
